@@ -5,9 +5,11 @@
 import { Command, Option, InvalidArgumentError } from 'commander';
 import { readFile } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
+import { Agent } from '../src/agent.js';
 import { Claude } from '../src/claude.js';
 import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
@@ -34,6 +36,7 @@ const program = new Command()
   .argument('<wishes>', 'directory with wishes, one per Markdown file')
   .option('--threads <n>', 'how many wishes run at once', positive, 8)
   .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default('', 'none'))
+  .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
@@ -64,7 +67,7 @@ if (process.stdin.isTTY) {
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
-    new Claude(values.agent, join(root, 'plugin'), dir, values.model),
+    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs)),
     screen,
     values.threads
   ).run(controller.signal);
