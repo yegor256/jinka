@@ -2,22 +2,36 @@
 // SPDX-License-Identifier: MIT
 
 import { Row } from './row.js';
+import { Duration } from './duration.js';
 
 /**
- * The screen for terminals, which keeps one line per wand.
- * It redraws all lines in place with ANSI cursor moves, cuts them
- * to the terminal width, and shows how long each row has been busy
- * with its current wish. The cursor always stays below the lines,
- * so the terminal is clean when jinka stops.
+ * The screen for terminals, which takes over the whole terminal like top.
+ * It switches to the alternate buffer and draws a fixed layout from the
+ * top left corner: the status line, one line per wand with the time it
+ * has been busy with its current wish, a separator, and the newest
+ * protocol lines that fit below it. The layout is redrawn on every change,
+ * every second, and on every resize, until the screen is closed and the
+ * normal buffer comes back.
  */
 export class Tty {
-  constructor(stream, threads) {
+  constructor(stream, threads, status) {
     this.stream = stream;
+    this.status = status;
     this.lines = Array.from({ length: threads }, () => ({ head: '', tail: '', start: Date.now() }));
+    this.notes = [];
     this.clock = [];
   }
   row(index) {
     return new Row({ push: ([i, text]) => this.#update(i, text) }, index);
+  }
+  protocol(index) {
+    return new Row({ push: ([i, text]) => this.#note(i, text) }, index);
+  }
+  close() {
+    this.clock.splice(0).forEach((c) => {
+      clearInterval(c);
+      this.stream.write('\x1b[?25h\x1b[?1049l');
+    });
   }
   #update(index, text) {
     const [head, tail = ''] = text.split('\t');
@@ -26,23 +40,36 @@ export class Tty {
       tail,
       start: head === this.lines[index].head ? this.lines[index].start : Date.now()
     };
+    this.#paint();
+  }
+  #note(index, text) {
+    this.notes.push(`${new Date().toTimeString().slice(0, 8)} [${index + 1}] ${text.replace('\t', '  ')}`);
+    this.#paint();
+  }
+  #paint() {
+    if (this.clock.length === 0) {
+      this.stream.write('\x1b[?1049h\x1b[?25l');
+      this.clock.push(setInterval(() => this.#draw(), 1000).unref());
+      this.stream.on('resize', () => {
+        if (this.clock.length > 0) {
+          this.#draw();
+        }
+      });
+    }
     this.#draw();
   }
   #draw() {
-    if (this.clock.length === 0) {
-      this.clock.push(setInterval(() => this.#draw(), 1000).unref());
-    } else {
-      this.stream.write(`\x1b[${this.lines.length}A`);
-    }
+    this.notes.splice(0, Math.max(0, this.notes.length - Math.max(0, (this.stream.rows || 24) - this.lines.length - 2)));
     const width = Math.max(...this.lines.map((l) => l.head.length));
     this.stream.write(
-      this.lines.map(
-        (l, i) => `\r\x1b[2K${`[${i + 1}] ${l.head.padEnd(width)}  ${this.#elapsed(l.start)}  ${l.tail}`.slice(0, this.stream.columns || 80)}\n`
-      ).join('')
+      `\x1b[H${
+        [
+          this.status.text(),
+          ...this.lines.map((l, i) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
+          '-'.repeat(10),
+          ...this.notes
+        ].map((l) => `\x1b[2K${l.slice(0, this.stream.columns || 80)}`).join('\n')
+      }\x1b[J`
     );
-  }
-  #elapsed(start) {
-    const seconds = Math.floor((Date.now() - start) / 1000);
-    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
   }
 }

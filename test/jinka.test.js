@@ -14,7 +14,7 @@ describe('Jinka', () => {
   it('makes every wish come true', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     await Promise.all([1, 2, 3].map((i) => writeFile(join(dir, `${i}.md`), randomUUID())));
-    await new Jinka(new Wishes(dir, 10), { run: async () => 0 }, { row: (i) => new Row([], i) }, 2).run(AbortSignal.timeout(300));
+    await new Jinka(new Wishes(dir, 10), { run: async () => 0 }, { row: (i) => new Row([], i), protocol: (i) => new Row([], i) }, 2).run(AbortSignal.timeout(300));
     assertThat('some wishes were left', await readdir(dir), empty());
   });
 });
