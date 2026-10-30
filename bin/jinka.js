@@ -20,6 +20,7 @@ import { Meters } from '../src/meters.js';
 import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
 import { Keys } from '../src/keys.js';
+import { Wheel } from '../src/wheel.js';
 import { Legend } from '../src/legend.js';
 import { Tokens } from '../src/tokens.js';
 import { Crew } from '../src/crew.js';
@@ -81,6 +82,7 @@ const interrupt = () => {
 };
 process.on('SIGINT', interrupt);
 new Keys(process.stdin, freeze, crew, interrupt).listen();
+new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),

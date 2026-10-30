@@ -62,7 +62,7 @@ describe('Tty', () => {
   it('switches to the alternate buffer and hides the cursor', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.0.6', Date.now(), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show('a.md\tworking');
-    assertThat('alternate buffer was not entered', chunks[0], equalTo('\x1b[?1049h\x1b[?25l'));
+    assertThat('alternate buffer was not entered', chunks[0], startsWith('\x1b[?1049h\x1b[?25l'));
   });
   it('redraws the whole layout from the top left corner', () => {
     const chunks = [];
@@ -89,7 +89,7 @@ describe('Tty', () => {
     const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.1.0', Date.now(), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
     tty.row(0).show('a.md\tworking');
     tty.close();
-    assertThat('normal buffer was not restored', chunks, hasItem('\x1b[?25h\x1b[?1049l'));
+    assertThat('normal buffer was not restored', chunks, hasItem('\x1b[?1007l\x1b[?25h\x1b[?1049l'));
   });
   it('prints the protocol lines that no longer fit the screen on close', () => {
     const chunks = [];
@@ -105,7 +105,7 @@ describe('Tty', () => {
     const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.1.7', Date.now(), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
     tty.notice().info(text);
     tty.close();
-    assertThat('protocol was not printed after the normal buffer', chunks.slice(chunks.indexOf('\x1b[?25h\x1b[?1049l') + 1).join(''), containsString(text));
+    assertThat('protocol was not printed after the normal buffer', chunks.slice(chunks.indexOf('\x1b[?1007l\x1b[?25h\x1b[?1049l') + 1).join(''), containsString(text));
   });
   it('writes nothing on close when it never drew', () => {
     const chunks = [];
@@ -118,7 +118,7 @@ describe('Tty', () => {
     tty.row(0).show('a.md\tworking');
     tty.close();
     tty.close();
-    assertThat('normal buffer was restored twice', chunks.filter((c) => c === '\x1b[?25h\x1b[?1049l').length, equalTo(1));
+    assertThat('normal buffer was restored twice', chunks.filter((c) => c === '\x1b[?1007l\x1b[?25h\x1b[?1049l').length, equalTo(1));
   });
   it('pins the legend to the last row of the terminal', () => {
     const chunks = [];
@@ -225,5 +225,52 @@ describe('Tty', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.2.9', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show(`\x1b[90midle\x1b[39m\t${randomUUID()}`);
     assertThat('timer of an idle thread was not gray', chunks.at(-1), containsString('\x1b[90m00:00\x1b[39m'));
+  });
+  it('turns the mouse wheel into arrow keys', () => {
+    const chunks = [];
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.0', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show('a.md\tworking');
+    assertThat('alternate scroll mode was not turned on', chunks[0], containsString('\x1b[?1007h'));
+  });
+  it('shows an older protocol line after scrolling up', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.1', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
+    [text, 'second', 'third'].forEach((t) => tty.notice().info(t));
+    tty.up();
+    assertThat('older protocol line was not shown', chunks.at(-1), containsString(text));
+  });
+  it('hides an older protocol line after scrolling back down', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.2', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
+    [text, 'second', 'third'].forEach((t) => tty.notice().info(t));
+    tty.up();
+    tty.down();
+    assertThat('older protocol line was not hidden', chunks.at(-1), not(containsString(text)));
+  });
+  it('stops scrolling up at the oldest protocol line', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.3', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
+    ['first', 'second', text].forEach((t) => tty.notice().info(t));
+    Array.from({ length: 7 }).forEach(() => tty.up());
+    tty.down();
+    assertThat('scrolling went past the oldest line', chunks.at(-1), containsString(text));
+  });
+  it('keeps the scrolled protocol still when a new line arrives', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.4', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
+    [text, 'second', 'third'].forEach((t) => tty.notice().info(t));
+    tty.up();
+    tty.notice().info('fourth');
+    assertThat('scrolled protocol moved', chunks.at(-1), containsString(text));
+  });
+  it('writes nothing on scroll when it never drew', () => {
+    const chunks = [];
+    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.3.5', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {})));
+    tty.up();
+    tty.down();
+    assertThat('scroll drew a screen that was never shown', chunks, equalTo([]));
   });
 });

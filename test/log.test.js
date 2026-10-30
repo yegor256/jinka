@@ -23,6 +23,13 @@ describe('Log', () => {
     new Log({ write: (c) => chunks.push(c) }).close();
     assertThat('log wrote something on close', chunks, equalTo([]));
   });
+  it('writes nothing on scroll', () => {
+    const chunks = [];
+    const log = new Log({ write: (c) => chunks.push(c) });
+    log.up();
+    log.down();
+    assertThat('log wrote something on scroll', chunks, equalTo([]));
+  });
   it('prints a notice with the time of day', () => {
     const chunks = [];
     const text = randomUUID();

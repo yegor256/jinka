@@ -16,6 +16,7 @@ export class Tty {
     this.lines = new Map();
     this.notes = [];
     this.clock = [];
+    this.view = { depth: 0 };
   }
   row(index) {
     return new Row({ push: ([i, text]) => this.#update(i, text) }, index);
@@ -23,10 +24,18 @@ export class Tty {
   notice() {
     return new Protocol({ push: ([level, text]) => this.#note(level === 'warn' ? `\x1b[38;2;255;135;0m${text}\x1b[39m` : text) });
   }
+  up() {
+    this.view.depth += 1;
+    this.#redraw();
+  }
+  down() {
+    this.view.depth = Math.max(0, this.view.depth - 1);
+    this.#redraw();
+  }
   close() {
     this.clock.splice(0).forEach((c) => {
       clearInterval(c);
-      this.stream.write('\x1b[?25h\x1b[?1049l');
+      this.stream.write('\x1b[?1007l\x1b[?25h\x1b[?1049l');
       this.stream.write(this.notes.map((n) => `${n}\n`).join(''));
     });
   }
@@ -40,19 +49,23 @@ export class Tty {
     this.notes.push(
       `${new Date().toTimeString().slice(0, 8)} ${text.replace(/https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/(?:issues|pull)\/(\d+)/g, (url, repo, number) => `\x1b]8;;${url}\x07\x1b[38;2;106;113;247m${repo}#${number}\x1b[39m\x1b]8;;\x07`)}`
     );
+    if (this.view.depth > 0) {
+      this.view.depth += this.#wrap(this.notes.at(-1), this.stream.columns || 80).length;
+    }
     this.#paint();
   }
   #paint() {
     if (this.clock.length === 0) {
-      this.stream.write('\x1b[?1049h\x1b[?25l');
+      this.stream.write('\x1b[?1049h\x1b[?25l\x1b[?1007h');
       this.clock.push(setInterval(() => this.#draw(), 1000).unref());
-      this.stream.on('resize', () => {
-        if (this.clock.length > 0) {
-          this.#draw();
-        }
-      });
+      this.stream.on('resize', () => this.#redraw());
     }
     this.#draw();
+  }
+  #redraw() {
+    if (this.clock.length > 0) {
+      this.#draw();
+    }
   }
   #draw() {
     const rows = this.stream.rows || 24;
@@ -60,12 +73,14 @@ export class Tty {
     const width = Math.max(...lines.map(([, l]) => stripVTControlCharacters(l.head).length));
     const columns = this.stream.columns || 80;
     const notes = this.notes.flatMap((n) => this.#wrap(n, columns));
+    const height = Math.max(0, rows - lines.length - 5);
+    this.view.depth = Math.min(this.view.depth, Math.max(0, notes.length - height));
     const top = [
       this.status.text(),
       '',
       ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${styleText(['', 'idle'].includes(stripVTControlCharacters(l.head)) ? 'gray' : 'green', new Duration(Date.now() - l.start).minutes(), { validateStream: false })}  ${l.tail}`),
       '-'.repeat(10),
-      ...notes.slice(Math.max(0, notes.length - Math.max(0, rows - lines.length - 5)))
+      ...notes.slice(Math.max(0, notes.length - height - this.view.depth), notes.length - this.view.depth)
     ];
     this.stream.write(
       `\x1b[H${
