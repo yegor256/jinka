@@ -72,6 +72,13 @@ describe('Wishes', () => {
     await (await new Wishes(dir, 10).next(AbortSignal.timeout(1000))).close();
     assertThat('startup wish was deleted', await readdir(dir), equalTo([name]));
   });
+  it('dont give a permanent wish again during the pause after success', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, `${randomUUID()}.md`), randomUUID());
+    const wishes = new Wishes(dir, 10, '', 60000);
+    await (await wishes.next(AbortSignal.timeout(1000))).close();
+    await promiseThat('permanent wish was given again without a pause', wishes.next(AbortSignal.timeout(200)), rejected());
+  });
   it('deletes a wish that appeared after startup', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const wishes = new Wishes(dir, 10);

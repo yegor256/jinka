@@ -49,6 +49,7 @@ const program = new Command()
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
+  .option('--pause <ms>', 'how long a wish that was there at startup waits after a success before it runs again', positive, 3600000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .parse();
 const values = program.opts();
@@ -76,7 +77,7 @@ process.on('SIGINT', interrupt);
 new Keys(process.stdin, freeze, crew, interrupt).listen();
 try {
   await new Jinka(
-    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
+    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),
     new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs), tokens),
     screen,
     crew

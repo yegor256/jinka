@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 export class Permanent {
-  constructor(origin) {
+  constructor(origin, pause) {
     this.origin = origin;
+    this.pause = pause;
   }
   name() {
     return this.origin.name();
@@ -15,7 +16,7 @@ export class Permanent {
     return 'which stays there after you exit, so you must not delete it';
   }
   async close() {
-    this.origin.free();
+    setTimeout(() => this.origin.free(), this.pause).unref();
   }
   free() {
     this.origin.free();
