@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo, empty } from 'hamjest';
+import { assertThat, equalTo, empty, containsString } from 'hamjest';
 import { Wish } from '../src/wish.js';
 
 describe('Wish', () => {
@@ -37,5 +37,8 @@ describe('Wish', () => {
     const claims = new Map([['d.md', true]]);
     new Wish('/nowhere', 'd.md', claims).free();
     assertThat('claim was not released', claims.get('d.md'), equalTo(false));
+  });
+  it('warns that its file will be deleted', () => {
+    assertThat('fate does not mention deletion', new Wish('/nowhere', 'e.md', new Map()).fate(), containsString('deleted'));
   });
 });

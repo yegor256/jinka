@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo, not, hasItem, promiseThat, rejected } from 'hamjest';
+import { assertThat, equalTo, not, hasItem, empty, promiseThat, rejected } from 'hamjest';
 import { Wishes } from '../src/wishes.js';
 
 describe('Wishes', () => {
@@ -60,8 +60,23 @@ describe('Wishes', () => {
   it('archives a wish when an archive is given', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
-    await writeFile(join(dir, 'a.md'), randomUUID());
-    await (await new Wishes(dir, 10, archive).next(AbortSignal.timeout(1000))).close();
+    const wishes = new Wishes(dir, 10, archive);
+    setTimeout(() => writeFile(join(dir, 'a.md'), randomUUID()), 50);
+    await (await wishes.next(AbortSignal.timeout(1000))).close();
     assertThat('wish was not archived', await readdir(archive), hasItem('a.md'));
+  });
+  it('keeps a wish that was there at startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `${randomUUID()}.md`;
+    await writeFile(join(dir, name), randomUUID());
+    await (await new Wishes(dir, 10).next(AbortSignal.timeout(1000))).close();
+    assertThat('startup wish was deleted', await readdir(dir), equalTo([name]));
+  });
+  it('deletes a wish that appeared after startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const wishes = new Wishes(dir, 10);
+    setTimeout(() => writeFile(join(dir, `${randomUUID()}.md`), randomUUID()), 50);
+    await (await wishes.next(AbortSignal.timeout(1000))).close();
+    assertThat('late wish was not deleted', await readdir(dir), empty());
   });
 });

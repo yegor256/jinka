@@ -21,6 +21,9 @@ export class Wish {
   async text() {
     return readFile(join(this.dir, this.path), 'utf8');
   }
+  fate() {
+    return 'which will be deleted once you exit with code zero';
+  }
   async close() {
     await rm(join(this.dir, this.path));
     this.claims.delete(this.path);

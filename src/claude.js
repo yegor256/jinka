@@ -27,7 +27,7 @@ export class Claude {
       '',
       await wish.text(),
       '',
-      `The wish is written in the file ${join(this.dir, wish.name())}, which will be deleted once you exit with code zero.`,
+      `The wish is written in the file ${join(this.dir, wish.name())}, ${wish.fate()}.`,
       `All wishes live in the directory ${this.dir}, and you may add new wishes there as Markdown files.`
     ].join('\n');
     const agent = spawn(

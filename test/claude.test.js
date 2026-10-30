@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { assertThat, equalTo, hasItem, containsString, not, promiseThat, rejected } from 'hamjest';
 import { Claude } from '../src/claude.js';
 import { Wish } from '../src/wish.js';
+import { Permanent } from '../src/permanent.js';
 import { Row } from '../src/row.js';
 import { Script } from './fixtures/script.js';
 
@@ -36,6 +37,14 @@ describe('Claude', () => {
     await writeFile(join(dir, 'c.md'), randomUUID());
     await new Claude(await new Script(0).path(), '/plugin', dir, '').run(new Wish(dir, 'c.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
     assertThat('wishes directory was not mentioned', lines.map((l) => l[1]).join('\n'), containsString(dir));
+  });
+  it('tells the agent what happens to the wish file', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const wish = new Permanent(new Wish(dir, 'i.md', new Map()));
+    const lines = [];
+    await writeFile(join(dir, 'i.md'), randomUUID());
+    await new Claude(await new Script(0).path(), '/plugin', dir, '').run(wish, new Row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('fate of the wish was not told', lines.map((l) => l[1]).join('\n'), containsString(wish.fate()));
   });
   it('loads the plugin with skills', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
