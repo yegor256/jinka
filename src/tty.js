@@ -12,7 +12,8 @@ import { Duration } from './duration.js';
  * the newest protocol lines that fit below it, while the legend with
  * the keys stays on the last row, under an empty line. The layout is redrawn on every change,
  * every second, and on every resize, until the screen is closed and the
- * normal buffer comes back.
+ * normal buffer comes back, where the whole protocol is printed line by
+ * line, so it stays in the console after jinka quits.
  */
 export class Tty {
   constructor(stream, threads, status, legend) {
@@ -33,6 +34,7 @@ export class Tty {
     this.clock.splice(0).forEach((c) => {
       clearInterval(c);
       this.stream.write('\x1b[?25h\x1b[?1049l');
+      this.stream.write(this.notes.map((n) => `${n}\n`).join(''));
     });
   }
   #update(index, text) {
@@ -62,14 +64,13 @@ export class Tty {
   }
   #draw() {
     const rows = this.stream.rows || 24;
-    this.notes.splice(0, Math.max(0, this.notes.length - Math.max(0, rows - this.lines.length - 5)));
     const width = Math.max(...this.lines.map((l) => l.head.length));
     const top = [
       this.status.text(),
       '',
       ...this.lines.map((l, i) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
       '-'.repeat(10),
-      ...this.notes
+      ...this.notes.slice(Math.max(0, this.notes.length - Math.max(0, rows - this.lines.length - 5)))
     ];
     this.stream.write(
       `\x1b[H${
