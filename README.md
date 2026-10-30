@@ -4,15 +4,7 @@
 [![npm](https://img.shields.io/npm/v/@yegor256/jinka)](https://www.npmjs.com/package/@yegor256/jinka)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/jinka/blob/master/LICENSE.txt)
 
-First, you create `~/.jinka/wishes` directory with your wishes.
-You can start with a single wish (just a Markdown file):
-
-```text
-~/.jinka/wishes
-  Make-Me-Happy.md
-```
-
-In the `Make-Me-Happy.md` (capital letters matter!) file you say this:
+First, you create `~/.jinka/wishes/Make-Me-Happy.md` file:
 
 ```text
 I wish my GitHub repositories were in good shape: `foo/bar` and `foo/bar2`.
