@@ -97,6 +97,13 @@ describe('jinka command', () => {
       containsString('how many wishes run at once')
     );
   });
+  it('pauses permanent wishes for one minute by default', () => {
+    assertThat(
+      'help did not show a one minute default pause',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout.replace(/\s+/g, ' '),
+      containsString('runs again (default: 60000)')
+    );
+  });
   it('prints the version', () => {
     assertThat(
       'version was not printed',
