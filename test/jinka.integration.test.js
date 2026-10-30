@@ -98,4 +98,11 @@ describe('jinka command', () => {
       equalTo(1)
     );
   });
+  it('rejects more than sixteen threads', () => {
+    assertThat(
+      'too many threads were accepted',
+      spawnSync(process.execPath, ['bin/jinka.js', '--threads', '17', 'x'], { encoding: 'utf8', timeout: 5000 }).status,
+      equalTo(1)
+    );
+  });
 });

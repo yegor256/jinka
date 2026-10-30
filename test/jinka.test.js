@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertThat, empty } from 'hamjest';
+import { Crew } from '../src/crew.js';
 import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
 import { Row } from '../src/row.js';
@@ -14,7 +15,7 @@ describe('Jinka', () => {
   it('makes every late wish come true', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     setTimeout(() => Promise.all([1, 2, 3].map((i) => writeFile(join(dir, `${i}.md`), randomUUID()))), 50);
-    await new Jinka(new Wishes(dir, 10), { run: async () => 0 }, { row: (i) => new Row([], i), protocol: (i) => new Row([], i) }, 2).run(AbortSignal.timeout(300));
+    await new Jinka(new Wishes(dir, 10), { run: async () => 0 }, { row: (i) => new Row([], i), protocol: (i) => new Row([], i) }, new Crew(2, 16, new Row([], 0))).run(AbortSignal.timeout(300));
     assertThat('some wishes were left', await readdir(dir), empty());
   });
 });

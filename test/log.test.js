@@ -23,4 +23,10 @@ describe('Log', () => {
     new Log({ write: (c) => chunks.push(c) }).close();
     assertThat('log wrote something on close', chunks, equalTo([]));
   });
+  it('prints a notice with the time of day', () => {
+    const chunks = [];
+    const text = randomUUID();
+    new Log({ write: (c) => chunks.push(c) }).notice().show(text);
+    assertThat('notice was not printed', chunks.join(''), matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} ${text}\\n$`)));
+  });
 });

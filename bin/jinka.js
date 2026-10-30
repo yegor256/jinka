@@ -19,6 +19,7 @@ import { Frozen } from '../src/frozen.js';
 import { Keys } from '../src/keys.js';
 import { Legend } from '../src/legend.js';
 import { Tokens } from '../src/tokens.js';
+import { Crew } from '../src/crew.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -29,13 +30,21 @@ const positive = (text) => {
   }
   return number;
 };
+const limit = 16;
+const bounded = (text) => {
+  const number = positive(text);
+  if (number > limit) {
+    throw new InvalidArgumentError(`At most ${limit} threads are allowed, but got "${text}"`);
+  }
+  return number;
+};
 const program = new Command()
   .name('jinka')
   .description(pkg.description)
   .version(pkg.version)
   .showHelpAfterError('(add --help for additional information)')
   .argument('<wishes>', 'directory with wishes, one per Markdown file')
-  .option('--threads <n>', 'how many wishes run at once', positive, 8)
+  .option('--threads <n>', `how many wishes run at once, up to ${limit}, which the + and - keys change while running`, bounded, 8)
   .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default(join(homedir(), '.jinka', 'archive'), '~/.jinka/archive'))
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
@@ -45,11 +54,12 @@ const program = new Command()
 const values = program.opts();
 const dir = resolve(program.args[0]);
 const tokens = new Tokens();
-const freeze = new Freeze(values.threads, () => process.exit(0));
+const crew = new Crew(values.threads, limit, { show: (text) => screen.notice().show(text) });
+const freeze = new Freeze(crew, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
-    values.threads,
+    crew,
     new Status(pkg.version, Date.now(), values.model, tokens),
     new Legend(freeze)
   )
@@ -63,13 +73,13 @@ const interrupt = () => {
   controller.abort();
 };
 process.on('SIGINT', interrupt);
-new Keys(process.stdin, freeze, interrupt).listen();
+new Keys(process.stdin, freeze, crew, interrupt).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
     new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs), tokens),
     screen,
-    values.threads
+    crew
   ).run(controller.signal);
   process.exit(130);
 } catch (e) {

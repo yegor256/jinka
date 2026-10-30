@@ -79,4 +79,12 @@ describe('Wishes', () => {
     await (await wishes.next(AbortSignal.timeout(1000))).close();
     assertThat('late wish was not deleted', await readdir(dir), empty());
   });
+  it('dont claim a wish when aborted during the scan', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, `${randomUUID()}.md`), randomUUID());
+    const controller = new AbortController();
+    const wish = new Wishes(dir, 10).next(controller.signal);
+    controller.abort();
+    await promiseThat('aborted scan claimed a wish', wish, rejected());
+  });
 });

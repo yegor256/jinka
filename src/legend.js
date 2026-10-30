@@ -10,6 +10,6 @@ export class Legend {
     this.freeze = freeze;
   }
   text() {
-    return this.freeze.active() ? 'C - to continue' : 'F - to finish and quit';
+    return this.freeze.active() ? 'C - to continue' : 'F - to finish and quit, +/- to add threads';
   }
 }

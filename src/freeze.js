@@ -5,12 +5,12 @@
  * The switch that stops wands from taking new wishes, shared by all of them.
  * While it is on, idle wands wait for it to turn off, and busy wands
  * keep making their wishes come true. It counts the idle wands, and
- * quits once it is on and every wand is idle, because then all the
- * running wishes are finished and nothing else will start.
+ * quits once it is on and every wand of the crew is idle, because then
+ * all the running wishes are finished and nothing else will start.
  */
 export class Freeze {
-  constructor(threads, quit) {
-    this.threads = threads;
+  constructor(crew, quit) {
+    this.crew = crew;
     this.quit = quit;
     this.state = { frozen: false, idle: 0 };
     this.waiters = [];
@@ -43,7 +43,7 @@ export class Freeze {
     }
   }
   #check() {
-    if (this.state.frozen && this.state.idle === this.threads) {
+    if (this.state.frozen && this.state.idle === this.crew.size()) {
       this.quit();
     }
   }
