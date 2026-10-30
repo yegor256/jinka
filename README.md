@@ -1,6 +1,7 @@
 # Simple Command Line Orchestrator of Agents
 
 [![test](https://github.com/yegor256/jinka/actions/workflows/test.yml/badge.svg)](https://github.com/yegor256/jinka/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/@yegor256/jinka)](https://www.npmjs.com/package/@yegor256/jinka)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/jinka/blob/master/LICENSE.txt)
 
 First, you create a directory with your wishes, one per Markdown file.
