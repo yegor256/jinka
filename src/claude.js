@@ -22,7 +22,8 @@ export class Claude {
       await wish.text(),
       '',
       `The wish is written in the file ${join(this.dir, wish.name())}, ${wish.fate()}.`,
-      `All wishes live in the directory ${this.dir}, and you may add new wishes there as Markdown files.`
+      `All wishes live in the directory ${this.dir}, and you may add new wishes there as Markdown files.`,
+      'When you finish, end with a single plain sentence that says what you did.'
     ].join('\n');
     const file = join(
       this.logs,
@@ -35,8 +36,10 @@ export class Claude {
     child.stdin.end(prompt);
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log, { end: false });
+    let summary = '';
     createInterface({ input: child.stdout }).on('line', (line) => {
       this.tokens.add(line);
+      summary = new Event(line).summary() || summary;
       const text = new Event(line).text();
       if (text !== '') {
         row.show(text);
@@ -48,7 +51,7 @@ export class Claude {
           reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
         }
       });
-      child.on('close', (code) => log.end(() => resolve(code ?? 1)));
+      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary })));
     });
   }
 }
