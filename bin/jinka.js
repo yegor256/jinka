@@ -43,7 +43,7 @@ const bounded = (text) => {
 };
 const program = new Command()
   .name('jinka')
-  .description(pkg.description)
+  .description(`${pkg.description} (${pkg.version})`)
   .version(pkg.version)
   .showHelpAfterError('(add --help for additional information)')
   .addOption(new Option('--wishes <dir>', 'directory with wishes, one per Markdown file').default(join(homedir(), '.jinka', 'wishes'), '~/.jinka/wishes'))
