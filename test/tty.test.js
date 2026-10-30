@@ -124,7 +124,7 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 17, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.1.3', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(2, 16, new Row([], 0)), () => {})))
       .row(0)
       .show('a.md\tworking');
-    assertThat('legend is not on the last row', stripVTControlCharacters(chunks.at(-1)).split('\n')[16], equalTo('F - to finish and quit, +/- to add threads'));
+    assertThat('legend is not on the last row', stripVTControlCharacters(chunks.at(-1)).split('\n')[16], equalTo('keys: F - to finish and quit, +/- to add threads'));
   });
   it('leaves an empty line above the legend', () => {
     const chunks = [];
@@ -138,7 +138,7 @@ describe('Tty', () => {
     const freeze = new Freeze(new Crew(3, 16, new Row([], 0)), () => {});
     freeze.on();
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.1.5', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(freeze)).row(0).show('a.md\tworking');
-    assertThat('continue key is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), equalTo('C - to continue'));
+    assertThat('continue key is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), equalTo('keys: C - to continue'));
   });
   it('draws one more line when the crew grows', () => {
     const chunks = [];
@@ -156,8 +156,8 @@ describe('Tty', () => {
   });
   it('cuts a line without counting the escape codes', () => {
     const chunks = [];
-    new Tty({ columns: 5, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.0', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show('a.md\tworking');
-    assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2K\x1b[100mF\x1b[49m - t'));
+    new Tty({ columns: 11, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.0', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show('a.md\tworking');
+    assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2Kkeys: \x1b[100mF\x1b[49m - t'));
   });
   it('resets the style at the end of every line', () => {
     const chunks = [];
