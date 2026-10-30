@@ -20,7 +20,7 @@ I wish my GitHub repositories were in good shape: `foo/bar` and `foo/bar2`.
 Then, you install `jinka`:
 
 ```bash
-npm install -g jinka
+npm install -g @yegor256/jinka
 ```
 
 Finally, you run it, giving it the path to your directory with wishes:

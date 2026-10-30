@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
+# SPDX-License-Identifier: MIT
+---
+# yamllint disable rule:line-length
+name: release
+'on':
+  push:
+    tags:
+      - '*'
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  release:
+    timeout-minutes: 15
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm test
+      - run: npm version --no-git-tag-version "${GITHUB_REF_NAME}"
+      - run: npm publish --access public

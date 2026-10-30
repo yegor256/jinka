@@ -21,11 +21,14 @@
     "plugin"
   ],
   "license": "MIT",
-  "name": "jinka",
-  "repository": "github:yegor256/jinka",
+  "name": "@yegor256/jinka",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yegor256/jinka.git"
+  },
   "scripts": {
     "test": "c8 --check-coverage --lines 80 mocha"
   },
   "type": "module",
-  "version": "0.0.0"
+  "version": "0.0.1"
 }
