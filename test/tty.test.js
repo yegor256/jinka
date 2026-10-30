@@ -9,38 +9,43 @@ import { Tty } from '../src/tty.js';
 import { Status } from '../src/status.js';
 
 describe('Tty', () => {
-  it('draws the status line, one line per wand, and the separator', () => {
+  it('draws the status line, an empty line, one line per wand, and the separator', () => {
     const chunks = [];
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 3, new Status('1.2.3', Date.now())).row(1).show('a.md\tworking');
-    assertThat('wrong number of lines', stripVTControlCharacters(chunks.join('')).split('\n').length, equalTo(5));
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 3, new Status('1.2.3', Date.now(), 'sonnet')).row(1).show('a.md\tworking');
+    assertThat('wrong number of lines', stripVTControlCharacters(chunks.join('')).split('\n').length, equalTo(6));
   });
   it('shows the version in the status line', () => {
     const chunks = [];
     const version = randomUUID();
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status(version, Date.now())).row(0).show('a.md\tworking');
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status(version, Date.now(), 'sonnet')).row(0).show('a.md\tworking');
     assertThat('version was not shown', stripVTControlCharacters(chunks.join('')).split('\n')[0], containsString(version));
+  });
+  it('leaves an empty line under the status line', () => {
+    const chunks = [];
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.3', Date.now(), 'haiku')).row(0).show('a.md\tworking');
+    assertThat('line under the status line is not empty', stripVTControlCharacters(chunks.join('')).split('\n')[1], equalTo(''));
   });
   it('shows the text of a row', () => {
     const chunks = [];
     const text = randomUUID();
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.1', Date.now())).row(0).show(`a.md\t${text}`);
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.1', Date.now(), 'sonnet')).row(0).show(`a.md\t${text}`);
     assertThat('row text was not drawn', chunks.join(''), containsString(text));
   });
   it('shows a protocol line below the separator', () => {
     const chunks = [];
     const text = randomUUID();
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.2', Date.now())).protocol(1).show(`b.md\t${text}`);
-    assertThat('protocol line was not drawn', stripVTControlCharacters(chunks.join('')).split('\n')[4], endsWith(`[2] b.md  ${text}`));
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.2', Date.now(), 'sonnet')).protocol(1).show(`b.md\t${text}`);
+    assertThat('protocol line was not drawn', stripVTControlCharacters(chunks.join('')).split('\n')[5], endsWith(`[2] b.md  ${text}`));
   });
   it('shows only the newest protocol lines that fit', () => {
     const chunks = [];
-    const tty = new Tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.3', Date.now()));
+    const tty = new Tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.3', Date.now(), 'sonnet'));
     ['x.md\tfirst', 'y.md\tsecond', 'z.md\tthird'].forEach((t) => tty.protocol(0).show(t));
     assertThat('old protocol line was not dropped', chunks.at(-1), not(containsString('first')));
   });
   it('cuts lines to the terminal width', () => {
     const chunks = [];
-    new Tty({ columns: 30, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.4', Date.now())).row(0).show(`a.md\t${'x'.repeat(100)}`);
+    new Tty({ columns: 30, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.0.4', Date.now(), 'sonnet')).row(0).show(`a.md\t${'x'.repeat(100)}`);
     assertThat(
       'line is wider than the terminal',
       stripVTControlCharacters(chunks.join('')).split('\n').map((l) => l.length),
@@ -50,17 +55,17 @@ describe('Tty', () => {
   it('draws full lines when the terminal width is unknown', () => {
     const chunks = [];
     const text = randomUUID();
-    new Tty({ columns: 0, rows: 0, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.5', Date.now())).row(0).show(`a.md\t${text}`);
+    new Tty({ columns: 0, rows: 0, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.5', Date.now(), 'sonnet')).row(0).show(`a.md\t${text}`);
     assertThat('line was cut to nothing', chunks.join(''), containsString(text));
   });
   it('switches to the alternate buffer and hides the cursor', () => {
     const chunks = [];
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.6', Date.now())).row(0).show('a.md\tworking');
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.6', Date.now(), 'sonnet')).row(0).show('a.md\tworking');
     assertThat('alternate buffer was not entered', chunks[0], equalTo('\x1b[?1049h\x1b[?25l'));
   });
   it('redraws the whole layout from the top left corner', () => {
     const chunks = [];
-    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 4, new Status('0.0.7', Date.now()));
+    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 4, new Status('0.0.7', Date.now(), 'sonnet'));
     tty.row(0).show('a.md\tfirst');
     tty.row(0).show('a.md\tsecond');
     assertThat('cursor did not move home', chunks.at(-1), startsWith('\x1b[H'));
@@ -68,31 +73,31 @@ describe('Tty', () => {
   it('redraws the layout when the terminal is resized', () => {
     const chunks = [];
     const stream = Object.assign(new EventEmitter(), { columns: 80, rows: 24, write: (c) => chunks.push(c) });
-    new Tty(stream, 1, new Status('0.0.8', Date.now())).row(0).show('a.md\tworking');
+    new Tty(stream, 1, new Status('0.0.8', Date.now(), 'sonnet')).row(0).show('a.md\tworking');
     stream.columns = 12;
     stream.emit('resize');
-    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[1], equalTo('[1] a.md  00'));
+    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('[1] a.md  00'));
   });
   it('shows an elapsed timer', () => {
     const chunks = [];
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.9', Date.now())).row(0).show('a.md\tworking');
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.0.9', Date.now(), 'sonnet')).row(0).show('a.md\tworking');
     assertThat('timer was not shown', chunks.join(''), containsString('00:00'));
   });
   it('restores the normal buffer and the cursor on close', () => {
     const chunks = [];
-    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.0', Date.now()));
+    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.0', Date.now(), 'sonnet'));
     tty.row(0).show('a.md\tworking');
     tty.close();
     assertThat('normal buffer was not restored', chunks, hasItem('\x1b[?25h\x1b[?1049l'));
   });
   it('writes nothing on close when it never drew', () => {
     const chunks = [];
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.1', Date.now())).close();
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.1', Date.now(), 'sonnet')).close();
     assertThat('closed screen wrote something', chunks, equalTo([]));
   });
   it('restores the normal buffer only once', () => {
     const chunks = [];
-    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.2', Date.now()));
+    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.2', Date.now(), 'sonnet'));
     tty.row(0).show('a.md\tworking');
     tty.close();
     tty.close();
