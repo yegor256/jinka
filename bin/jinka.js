@@ -11,6 +11,7 @@ import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
 import { Agent } from '../src/agent.js';
 import { Claude } from '../src/claude.js';
+import { Disk } from '../src/disk.js';
 import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
 import { Status } from '../src/status.js';
@@ -47,6 +48,7 @@ const program = new Command()
   .option('--threads <n>', `how many wishes run at once, up to ${limit}, which the + and - keys change while running`, bounded, 8)
   .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default(join(homedir(), '.jinka', 'archive'), '~/.jinka/archive'))
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
+  .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs').default(join(homedir(), '.jinka', 'memory'), '~/.jinka/memory'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 60000)
@@ -78,7 +80,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),
-    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs), tokens),
+    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), new Disk(dir, resolve(values.logs), resolve(values.memory)), tokens),
     screen,
     crew
   ).run(controller.signal);

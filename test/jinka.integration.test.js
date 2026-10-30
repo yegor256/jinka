@@ -17,7 +17,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -38,7 +38,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);

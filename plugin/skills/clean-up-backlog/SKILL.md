@@ -3,7 +3,7 @@ name: clean-up-backlog
 description: |
   Turns the neglected issues and pull requests of GitHub repositories into new wishes.
   Use when a wish says "keep my repositories in good shape", "clean up the backlog", "go through open issues", or names repositories whose backlog needs care.
-  Picks the oldest untouched items, skips those that already have a wish or wait for their author, skips pull requests whose latest review requests changes, and writes at most five new wishes, one per item, into the wishes directory.
+  Picks the oldest untouched items, skips those that already have a wish, wait for their author, or were triaged within the last day, skips pull requests whose latest review requests changes, and writes at most five new wishes, one per item, into the wishes directory.
 ---
 
 # Clean Up the Backlog
@@ -33,6 +33,9 @@ Skip pull requests whose latest review requests changes.
 Skip items whose last comment or review came from this account.
 Skip items that an existing wish already covers.
 Search the wishes directory and all its sub-directories for that.
+Skip issues triaged less than one day ago,
+  according to `<owner>/<repo>/triaged.csv`
+  in the memory directory given in the prompt.
 
 ## Limit
 
