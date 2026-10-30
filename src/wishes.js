@@ -9,10 +9,11 @@ import { Archived } from './archived.js';
 import { Permanent } from './permanent.js';
 
 export class Wishes {
-  constructor(dir, interval, archive = '') {
+  constructor(dir, interval, archive = '', pause = 0) {
     this.dir = dir;
     this.interval = interval;
     this.archive = archive;
+    this.pause = pause;
     this.claims = new Map();
     this.startup = [];
   }
@@ -36,7 +37,7 @@ export class Wishes {
     this.claims.set(path, true);
     const wish = new Wish(this.dir, path, this.claims);
     if (this.startup[0].has(path)) {
-      return new Permanent(wish);
+      return new Permanent(wish, this.pause);
     }
     return this.archive === '' ? wish : new Archived(wish, this.dir, this.archive);
   }
