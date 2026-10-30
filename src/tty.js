@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import sliceAnsi from 'slice-ansi';
 import { Row } from './row.js';
 import { Duration } from './duration.js';
 
@@ -66,7 +67,7 @@ export class Tty {
     this.stream.write(
       `\x1b[H${
         [...top, ...Array(Math.max(1, rows - top.length - 1)).fill(''), this.legend.text()]
-          .map((l) => `\x1b[2K${l.slice(0, this.stream.columns || 80)}`)
+          .map((l) => `\x1b[2K${sliceAnsi(l, 0, this.stream.columns || 80)}\x1b[0m`)
           .join('\n')
       }\x1b[J`
     );
