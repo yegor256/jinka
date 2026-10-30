@@ -96,6 +96,24 @@ describe('Claude', () => {
     await new Claude(new Agent(await new Script(0).path(), ''), '/plugin', dir, logs, { add: () => {} }).run(new Wish(dir, join('deep', 'fix-the-parser.md'), new Map()), new Row([], 0), AbortSignal.timeout(5000));
     assertThat('log was misnamed', (await readdir(logs, { recursive: true })).join(' '), matchesPattern(/deep[\\/]fix-the-parser-\d{8}-\d{6}\.jsonl/));
   });
+  it('returns the tokens spent by the agent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'p.md'), randomUUID());
+    assertThat(
+      'tokens were lost',
+      (await new Claude(new Agent(await new Script(0, 0, [JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { input_tokens: 4170, output_tokens: 328 } } })]).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'p.md', new Map()), new Row([], 0), AbortSignal.timeout(5000))).tokens,
+      equalTo('4.5K')
+    );
+  });
+  it('returns the model used by the agent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'q.md'), randomUUID());
+    assertThat(
+      'model was lost',
+      (await new Claude(new Agent(await new Script(0, 0, [JSON.stringify({ type: 'system', subtype: 'init', model: 'claude-opus-4-1-20250805' })]).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'q.md', new Map()), new Row([], 0), AbortSignal.timeout(5000))).model,
+      equalTo('Opus4.1')
+    );
+  });
   it('reports every line of the agent to the tokens', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const text = `Count me ${randomUUID()}`;

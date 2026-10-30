@@ -6,6 +6,8 @@ import { mkdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import { join, dirname, extname } from 'node:path';
 import { Event } from './event.js';
+import { Tokens } from './tokens.js';
+import { Model } from './model.js';
 
 export class Claude {
   constructor(agent, plugin, dir, logs, tokens) {
@@ -37,8 +39,12 @@ export class Claude {
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log, { end: false });
     let summary = '';
+    const usage = new Tokens();
+    const model = new Model();
     createInterface({ input: child.stdout }).on('line', (line) => {
       this.tokens.add(line);
+      usage.add(line);
+      model.add(line);
       summary = new Event(line).summary() || summary;
       const text = new Event(line).text();
       if (text !== '') {
@@ -51,7 +57,7 @@ export class Claude {
           reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
         }
       });
-      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary })));
+      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, tokens: usage.text(), model: model.text() })));
     });
   }
 }
