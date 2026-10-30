@@ -29,7 +29,8 @@ Skip an issue too vague to reproduce,
 Read the title, the body, and every comment.
 Clone or pull the default branch.
 Find the code that the issue talks about.
-Stop and comment on the issue when the default branch no longer has the bug.
+Close the issue and post an explanatory comment when
+  the default branch no longer has the bug.
 
 Create a branch named after the issue number, such as `42`.
 Start it from the latest commit of the default branch.
