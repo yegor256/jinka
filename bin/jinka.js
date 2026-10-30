@@ -19,11 +19,12 @@ const { values, positionals } = parseArgs({
     threads: { type: 'string', default: '8' },
     archive: { type: 'string', default: '' },
     agent: { type: 'string', default: 'claude' },
-    interval: { type: 'string', default: '5000' }
+    interval: { type: 'string', default: '5000' },
+    model: { type: 'string', default: '' }
   }
 });
 if (positionals.length !== 1) {
-  console.error('Usage: jinka [--threads 8] [--archive DIR] [--agent claude] [--interval 5000] WISHES');
+  console.error('Usage: jinka [--threads 8] [--archive DIR] [--agent claude] [--interval 5000] [--model MODEL] WISHES');
   process.exit(1);
 }
 const threads = Number(values.threads);
@@ -48,7 +49,7 @@ process.on('SIGINT', () => {
 try {
   await new Jinka(
     new Wishes(dir, interval, values.archive === '' ? '' : resolve(values.archive)),
-    new Claude(values.agent, join(root, 'plugin'), dir),
+    new Claude(values.agent, join(root, 'plugin'), dir, values.model),
     screen,
     threads
   ).run(controller.signal);
