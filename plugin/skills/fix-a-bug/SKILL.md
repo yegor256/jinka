@@ -44,7 +44,9 @@ Write a test that fails because of the bug, before touching the code.
 Put it into the test file that matches the source file with the defect.
 Name the test as a sentence that states the expected behavior.
 Run the test and confirm that it fails for the reason the issue describes.
-Stop and comment on the issue when the bug refuses to reproduce.
+Close the issue when the bug refuses to reproduce.
+Ask its author in the closing comment to submit a new issue
+  with more evidence, such as exact input, output, and versions.
 
 ## Fix
 
