@@ -1,5 +1,8 @@
 # Simple Command Line Orchestrator of Agents
 
+[![test](https://github.com/yegor256/jinka/actions/workflows/test.yml/badge.svg)](https://github.com/yegor256/jinka/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/jinka/blob/master/LICENSE.txt)
+
 First, you create a directory with your wishes, one per Markdown file.
 You can start with a single wish:
 
