@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { parseArgs } from 'node:util';
+import { Command, Option, InvalidArgumentError } from 'commander';
 import { readFile } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,34 +17,35 @@ import { Frozen } from '../src/frozen.js';
 import { Keys } from '../src/keys.js';
 import { Legend } from '../src/legend.js';
 
-const { values, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    threads: { type: 'string', default: '8' },
-    archive: { type: 'string', default: '' },
-    agent: { type: 'string', default: 'claude' },
-    interval: { type: 'string', default: '5000' },
-    model: { type: 'string', default: '' }
-  }
-});
-if (positionals.length !== 1) {
-  console.error('Usage: jinka [--threads 8] [--archive DIR] [--agent claude] [--interval 5000] [--model MODEL] WISHES');
-  process.exit(1);
-}
-const threads = Number(values.threads);
-const interval = Number(values.interval);
-if (!Number.isInteger(threads) || threads < 1 || !Number.isInteger(interval) || interval < 1) {
-  console.error(`The --threads and --interval options must be positive integers, but got "${values.threads}" and "${values.interval}"`);
-  process.exit(1);
-}
-const dir = resolve(positionals[0]);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const freeze = new Freeze(threads, () => process.exit(0));
+const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+const positive = (text) => {
+  const number = Number(text);
+  if (!Number.isInteger(number) || number < 1) {
+    throw new InvalidArgumentError(`A positive integer is expected, but got "${text}"`);
+  }
+  return number;
+};
+const program = new Command()
+  .name('jinka')
+  .description(pkg.description)
+  .version(pkg.version)
+  .showHelpAfterError('(add --help for additional information)')
+  .argument('<wishes>', 'directory with wishes, one per Markdown file')
+  .option('--threads <n>', 'how many wishes run at once', positive, 8)
+  .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default('', 'none'))
+  .option('--agent <cmd>', 'agent executable to run', 'claude')
+  .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
+  .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
+  .parse();
+const values = program.opts();
+const dir = resolve(program.args[0]);
+const freeze = new Freeze(values.threads, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
-    threads,
-    new Status(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version, Date.now(), values.model),
+    values.threads,
+    new Status(pkg.version, Date.now(), values.model),
     new Legend(freeze)
   )
   : new Log(process.stdout);
@@ -62,10 +63,10 @@ if (process.stdin.isTTY) {
 }
 try {
   await new Jinka(
-    new Frozen(new Wishes(dir, interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
+    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
     new Claude(values.agent, join(root, 'plugin'), dir, values.model),
     screen,
-    threads
+    values.threads
   ).run(controller.signal);
   process.exit(130);
 } catch (e) {

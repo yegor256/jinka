@@ -3,6 +3,9 @@
   "bin": {
     "jinka": "bin/jinka.js"
   },
+  "dependencies": {
+    "commander": "^14.0.3"
+  },
   "description": "Simple command line orchestrator of coding agents",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
