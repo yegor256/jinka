@@ -17,12 +17,12 @@ describe('Legend', () => {
     freeze.on();
     assertThat('continue key is not shown', stripVTControlCharacters(new Legend(freeze).text()), equalTo('C - to continue'));
   });
-  it('paints the keys on a gray background', () => {
-    assertThat('keys are not painted gray', new Legend(new Freeze(new Crew(3, 16, new Row([], 0)), () => {})).text(), equalTo('\x1b[47mF\x1b[49m - to finish and quit, \x1b[47m+/-\x1b[49m to add threads'));
+  it('paints the keys on a dark gray background', () => {
+    assertThat('keys are not painted gray', new Legend(new Freeze(new Crew(3, 16, new Row([], 0)), () => {})).text(), equalTo('\x1b[100mF\x1b[49m - to finish and quit, \x1b[100m+/-\x1b[49m to add threads'));
   });
-  it('paints the continue key on a gray background', () => {
+  it('paints the continue key on a dark gray background', () => {
     const freeze = new Freeze(new Crew(4, 16, new Row([], 0)), () => {});
     freeze.on();
-    assertThat('continue key is not painted gray', new Legend(freeze).text(), equalTo('\x1b[47mC\x1b[49m - to continue'));
+    assertThat('continue key is not painted dark gray', new Legend(freeze).text(), equalTo('\x1b[100mC\x1b[49m - to continue'));
   });
 });

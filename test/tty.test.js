@@ -162,7 +162,7 @@ describe('Tty', () => {
   it('cuts a line without counting the escape codes', () => {
     const chunks = [];
     new Tty({ columns: 5, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.0', Date.now(), 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show('a.md\tworking');
-    assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2K\x1b[47mF\x1b[49m - t'));
+    assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2K\x1b[100mF\x1b[49m - t'));
   });
   it('resets the style at the end of every line', () => {
     const chunks = [];

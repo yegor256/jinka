@@ -9,7 +9,7 @@ export class Legend {
   }
   text() {
     return this.freeze.active()
-      ? `${styleText('bgWhite', 'C', { validateStream: false })} - to continue`
-      : `${styleText('bgWhite', 'F', { validateStream: false })} - to finish and quit, ${styleText('bgWhite', '+/-', { validateStream: false })} to add threads`;
+      ? `${styleText('bgGray', 'C', { validateStream: false })} - to continue`
+      : `${styleText('bgGray', 'F', { validateStream: false })} - to finish and quit, ${styleText('bgGray', '+/-', { validateStream: false })} to add threads`;
   }
 }

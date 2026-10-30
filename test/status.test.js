@@ -24,20 +24,20 @@ describe('Status', () => {
     tokens.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 4_721 } } }));
     assertThat('tokens are not shown', stripVTControlCharacters(new Status('0.0.3', Date.now(), 'haiku', tokens).text()), endsWith(', tokens 4.7K'));
   });
-  it('paints the version on a gray background', () => {
+  it('paints the version on a dark gray background', () => {
     const version = randomUUID();
-    assertThat('version is not painted gray', new Status(version, Date.now(), 'opus', new Tokens()).text(), startsWith(`jinka \x1b[47m${version}\x1b[49m,`));
+    assertThat('version is not painted dark gray', new Status(version, Date.now(), 'opus', new Tokens()).text(), startsWith(`jinka \x1b[100m${version}\x1b[49m,`));
   });
-  it('paints the uptime on a gray background', () => {
-    assertThat('uptime is not painted gray', new Status('0.0.4', Date.now() - 7_384_000, 'opus', new Tokens()).text(), containsString(', up \x1b[47m02:03:04\x1b[49m,'));
+  it('paints the uptime on a dark gray background', () => {
+    assertThat('uptime is not painted dark gray', new Status('0.0.4', Date.now() - 7_384_000, 'opus', new Tokens()).text(), containsString(', up \x1b[100m02:03:04\x1b[49m,'));
   });
-  it('paints the model on a gray background', () => {
+  it('paints the model on a dark gray background', () => {
     const model = randomUUID();
-    assertThat('model is not painted gray', new Status('0.0.5', Date.now(), model, new Tokens()).text(), containsString(`, model \x1b[47m${model}\x1b[49m,`));
+    assertThat('model is not painted dark gray', new Status('0.0.5', Date.now(), model, new Tokens()).text(), containsString(`, model \x1b[100m${model}\x1b[49m,`));
   });
-  it('paints the tokens on a gray background', () => {
+  it('paints the tokens on a dark gray background', () => {
     const tokens = new Tokens();
     tokens.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 813 } } }));
-    assertThat('tokens are not painted gray', new Status('0.0.6', Date.now(), 'sonnet', tokens).text(), endsWith(', tokens \x1b[47m813\x1b[49m'));
+    assertThat('tokens are not painted gray', new Status('0.0.6', Date.now(), 'sonnet', tokens).text(), endsWith(', tokens \x1b[100m813\x1b[49m'));
   });
 });

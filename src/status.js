@@ -13,10 +13,10 @@ export class Status {
   }
   text() {
     return [
-      `jinka ${styleText('bgWhite', this.version, { validateStream: false })}`,
-      `up ${styleText('bgWhite', new Duration(Date.now() - this.start).hours(), { validateStream: false })}`,
-      `model ${styleText('bgWhite', this.model === '' ? 'default' : this.model, { validateStream: false })}`,
-      `tokens ${styleText('bgWhite', this.tokens.text(), { validateStream: false })}`
+      `jinka ${styleText('bgGray', this.version, { validateStream: false })}`,
+      `up ${styleText('bgGray', new Duration(Date.now() - this.start).hours(), { validateStream: false })}`,
+      `model ${styleText('bgGray', this.model === '' ? 'default' : this.model, { validateStream: false })}`,
+      `tokens ${styleText('bgGray', this.tokens.text(), { validateStream: false })}`
     ].join(', ');
   }
 }
