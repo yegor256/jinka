@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { mkdtemp, mkdir, writeFile, readdir } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -89,6 +89,30 @@ describe('jinka command', () => {
     jinka.stdin.write('\x03');
     await once(jinka, 'exit');
     assertThat('the wish was not read from the home directory', await readdir(archive).catch(() => []), equalTo(['a.md']));
+  });
+  it('loads skills from the directory given in the skill option', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const logs = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const skill = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--skill', skill, '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      { stdio: ['pipe', 'ignore', 'ignore'] }
+    );
+    await setTimeout(500);
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const deadline = Date.now() + 8000;
+    while ((await readdir(archive)).length < 1 && Date.now() < deadline) {
+      await setTimeout(50);
+    }
+    jinka.stdin.write('\x03');
+    await once(jinka, 'exit');
+    assertThat(
+      'the agent did not load skills from the given directory',
+      (await Promise.all((await readdir(logs)).map((f) => readFile(join(logs, f), 'utf8')))).join(''),
+      containsString(`--plugin-dir ${skill}`)
+    );
   });
   it('prints help with option descriptions', () => {
     assertThat(
