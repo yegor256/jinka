@@ -74,9 +74,9 @@ describe('Tty', () => {
     const chunks = [];
     const stream = Object.assign(new EventEmitter(), { columns: 80, rows: 24, write: (c) => chunks.push(c) });
     new Tty(stream, new Crew(1, 16, new Row([], 0)), new Status('0.0.8', Date.now(), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show('a.md\tworking');
-    stream.columns = 12;
+    stream.columns = 8;
     stream.emit('resize');
-    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('[1] a.md  00'));
+    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('a.md  00'));
   });
   it('shows an elapsed timer', () => {
     const chunks = [];
@@ -146,7 +146,7 @@ describe('Tty', () => {
     const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew, new Status('0.1.8', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(crew, () => {})));
     crew.more();
     tty.row(2).show('c.md\tworking');
-    assertThat('new line was not drawn', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], startsWith('[3] c.md'));
+    assertThat('new line was not drawn', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], startsWith('c.md'));
   });
   it('shows a notice below the separator', () => {
     const chunks = [];
@@ -184,6 +184,19 @@ describe('Tty', () => {
     const chunks = [];
     new Tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.5', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show('abcdefghijklmnopqrstuvwxyz');
     assertThat('newest piece of the protocol is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  tuvwxyz'));
+  });
+  it('dont show the number of a thread', () => {
+    const chunks = [];
+    const name = `${randomUUID()}.md`;
+    new Tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.6', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show(`${name}\tworking`);
+    assertThat('thread number was shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], startsWith(name));
+  });
+  it('aligns the timers when a head is colored', () => {
+    const chunks = [];
+    const tty = new Tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.2.7', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(2, 16, new Row([], 0)), () => {})));
+    tty.row(0).show('\x1b[90midle\x1b[39m\twaiting');
+    tty.row(1).show('abcdefgh.md\tworking');
+    assertThat('timers are not aligned', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(2, 4).map((l) => l.indexOf('00:00')), equalTo([13, 13]));
   });
   it('turns a link to a pull request into a short blue clickable hyperlink', () => {
     const chunks = [];

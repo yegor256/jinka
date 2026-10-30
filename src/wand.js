@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { styleText } from 'node:util';
 import { Duration } from './duration.js';
 
 export class Wand {
@@ -22,7 +23,7 @@ export class Wand {
     }
   }
   async #once(signal) {
-    this.row.show('idle\twaiting for wishes');
+    this.row.show(`${styleText('gray', 'idle', { validateStream: false })}\t${styleText('gray', 'waiting for wishes', { validateStream: false })}`);
     const wish = await this.wishes.next(signal);
     this.row.show(`${wish.name()}\tstarting the agent`);
     const start = Date.now();

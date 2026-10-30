@@ -56,13 +56,13 @@ export class Tty {
   #draw() {
     const rows = this.stream.rows || 24;
     const lines = this.crew.indexes().map((i) => [i, this.lines.get(i) ?? { head: '', tail: '', start: Date.now() }]);
-    const width = Math.max(...lines.map(([, l]) => l.head.length));
+    const width = Math.max(...lines.map(([, l]) => stripVTControlCharacters(l.head).length));
     const columns = this.stream.columns || 80;
     const notes = this.notes.flatMap((n) => this.#wrap(n, columns));
     const top = [
       this.status.text(),
       '',
-      ...lines.map(([i, l]) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
+      ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
       '-'.repeat(10),
       ...notes.slice(Math.max(0, notes.length - Math.max(0, rows - lines.length - 5)))
     ];

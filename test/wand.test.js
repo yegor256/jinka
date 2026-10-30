@@ -5,7 +5,7 @@ import { mkdtemp, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, empty, hasItem, startsWith, equalTo, matchesPattern } from 'hamjest';
+import { assertThat, empty, hasItem, equalTo, matchesPattern } from 'hamjest';
 import { Wand } from '../src/wand.js';
 import { Wishes } from '../src/wishes.js';
 import { Row } from '../src/row.js';
@@ -38,11 +38,11 @@ describe('Wand', () => {
     await new Wand(new Wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, new Row(lines, 0), new Row([], 0)).run(AbortSignal.timeout(300));
     assertThat('wish name was not shown', lines, hasItem(equalTo([0, `${name}\tworking`])));
   });
-  it('shows idle when there are no wishes', async () => {
+  it('shows idle in gray', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const lines = [];
     await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, new Row(lines, 0), new Row([], 0)).run(AbortSignal.timeout(100));
-    assertThat('idle was not shown', lines.map((l) => l[1]), hasItem(startsWith('idle')));
+    assertThat('idle was not gray', lines.map((l) => l[1]), hasItem(equalTo('\x1b[90midle\x1b[39m\t\x1b[90mwaiting for wishes\x1b[39m')));
   });
   it('reports a fulfilled wish to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
