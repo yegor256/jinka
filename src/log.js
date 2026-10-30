@@ -3,11 +3,6 @@
 
 import { Row } from './row.js';
 
-/**
- * The screen for anything that is not a terminal, such as CI or a pipe.
- * It prints every change of every row, every protocol line, and every
- * notice as a new plain line, without any cursor movement.
- */
 export class Log {
   constructor(stream) {
     this.stream = stream;

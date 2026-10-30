@@ -1,13 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-/**
- * The switch that stops wands from taking new wishes, shared by all of them.
- * While it is on, idle wands wait for it to turn off, and busy wands
- * keep making their wishes come true. It counts the idle wands, and
- * quits once it is on and every wand of the crew is idle, because then
- * all the running wishes are finished and nothing else will start.
- */
 export class Freeze {
   constructor(crew, quit) {
     this.crew = crew;

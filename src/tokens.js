@@ -1,14 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-/**
- * The running total of tokens spent by all agents, shared by all of them.
- * It reads every line of the stream-json output of the agents and sums
- * the input, output, and cache tokens of each message the model sends.
- * The agent repeats the usage of one message in every event that carries
- * a part of it, so each message is counted only once, by its identifier.
- * The total is printed in a short form, such as 1.2M.
- */
 export class Tokens {
   constructor() {
     this.messages = new Map();

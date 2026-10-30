@@ -1,11 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-/**
- * A span of time, printed the way a clock prints it.
- * It drops the milliseconds and pads every part with zeros, either as
- * minutes and seconds, or as hours, minutes and seconds.
- */
 export class Duration {
   constructor(millis) {
     this.millis = millis;

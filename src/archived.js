@@ -4,11 +4,6 @@
 import { copyFile, mkdir, access } from 'node:fs/promises';
 import { join, dirname, extname } from 'node:path';
 
-/**
- * A wish that goes into the archive directory instead of disappearing.
- * The archived copy keeps the subdirectory of the wish, and gets a
- * timestamp in its name when a file with the same name is already there.
- */
 export class Archived {
   constructor(origin, dir, archive) {
     this.origin = origin;

@@ -4,11 +4,6 @@
 import { readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
-/**
- * One wish, a Markdown file inside the wishes directory.
- * The wish shares the map of claims with the wishes directory,
- * so it can give its claim back when a wand is done with it.
- */
 export class Wish {
   constructor(dir, path, claims) {
     this.dir = dir;

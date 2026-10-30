@@ -1,14 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-/**
- * One line of the stream-json output of the agent.
- * It turns the line into a short phrase that fits into one screen line,
- * such as a plain English account of what a tool does, or the first line
- * of what the agent said. A tool it does not know is named together with
- * its main argument. Lines that carry nothing worth showing
- * become an empty phrase.
- */
 export class Event {
   constructor(line) {
     this.line = line;

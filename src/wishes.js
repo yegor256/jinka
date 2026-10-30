@@ -8,15 +8,6 @@ import { Wish } from './wish.js';
 import { Archived } from './archived.js';
 import { Permanent } from './permanent.js';
 
-/**
- * The directory with wishes, shared by all wands.
- * It is the only object with mutable state: a map of claims, where the
- * order of entries tells how recently each wish was tried and the value
- * tells whether a wand holds it now. A wish is claimed synchronously
- * right after the scan, so two wands never get the same file.
- * The wishes found by the first scan are permanent and stay in the
- * directory forever, while the ones that appear later are one-time.
- */
 export class Wishes {
   constructor(dir, interval, archive = '') {
     this.dir = dir;
