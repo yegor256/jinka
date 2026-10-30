@@ -36,7 +36,9 @@ export class Tty {
     this.#paint();
   }
   #note(text) {
-    this.notes.push(`${new Date().toTimeString().slice(0, 8)} ${text}`);
+    this.notes.push(
+      `${new Date().toTimeString().slice(0, 8)} ${text.replace(/https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/(?:issues|pull)\/(\d+)/g, (url, repo, number) => `\x1b]8;;${url}\x07${repo}#${number}\x1b]8;;\x07`)}`
+    );
     this.#paint();
   }
   #paint() {

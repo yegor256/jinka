@@ -22,6 +22,14 @@ export class Event {
       return '';
     }
   }
+  link() {
+    try {
+      const json = JSON.parse(this.line);
+      return json.type === 'result' ? (String(json.result ?? '').match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0] : '';
+    } catch {
+      return '';
+    }
+  }
   #phrase(json) {
     if (json.type === 'assistant') {
       return (json.message?.content ?? []).map((part) => this.#part(part)).filter((p) => p !== '').join(' ');

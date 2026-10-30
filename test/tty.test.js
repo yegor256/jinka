@@ -184,4 +184,10 @@ describe('Tty', () => {
     new Tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.5', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show('abcdefghijklmnopqrstuvwxyz');
     assertThat('newest piece of the protocol is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  tuvwxyz'));
   });
+  it('turns a link to a pull request into a short clickable hyperlink', () => {
+    const chunks = [];
+    const url = `https://github.com/y-${Math.floor(Math.random() * 1000)}/r.x/pull/${Math.floor(Math.random() * 1000)}`;
+    new Tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.1', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show(`Merged ü ${url}`);
+    assertThat('link was not clickable', chunks.at(-1), containsString(`\x1b]8;;${url}\x07${url.slice(19).replace('/pull/', '#')}\x1b]8;;\x07`));
+  });
 });

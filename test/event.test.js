@@ -134,4 +134,17 @@ describe('Event', () => {
   it('summarizes nothing for a broken line', () => {
     assertThat('broken line was summarized', new Event('{ not json ж').summary(), equalTo(''));
   });
+  it('finds the link to the pull request in the final result', () => {
+    const url = `https://github.com/z-${Math.floor(Math.random() * 1000)}/ü-x/pull/${Math.floor(Math.random() * 1000)}`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: `Merged it\n${url}\n` });
+    assertThat('link was not found', new Event(line).link(), equalTo(url));
+  });
+  it('finds no link in a final result without a url', () => {
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: 'Did nothing ж\nhttps://example.com/a/b/pull/7' });
+    assertThat('link was found where none was', new Event(line).link(), equalTo(''));
+  });
+  it('finds no link in an assistant message', () => {
+    const line = JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'see https://github.com/a/b/issues/3' }] } });
+    assertThat('link was found in an assistant message', new Event(line).link(), equalTo(''));
+  });
 });
