@@ -5,7 +5,8 @@
   },
   "dependencies": {
     "commander": "^14.0.3",
-    "cross-spawn": "^7.0.6"
+    "cross-spawn": "^7.0.6",
+    "slice-ansi": "^7.1.2"
   },
   "description": "Simple command line orchestrator of coding agents",
   "devDependencies": {

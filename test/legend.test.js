@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { stripVTControlCharacters } from 'node:util';
 import { assertThat, equalTo } from 'hamjest';
 import { Crew } from '../src/crew.js';
 import { Row } from '../src/row.js';
@@ -9,11 +10,19 @@ import { Freeze } from '../src/freeze.js';
 
 describe('Legend', () => {
   it('tells how to finish and quit', () => {
-    assertThat('finish key is not shown', new Legend(new Freeze(new Crew(2, 16, new Row([], 0)), () => {})).text(), equalTo('F - to finish and quit, +/- to add threads'));
+    assertThat('finish key is not shown', stripVTControlCharacters(new Legend(new Freeze(new Crew(2, 16, new Row([], 0)), () => {})).text()), equalTo('F - to finish and quit, +/- to add threads'));
   });
   it('tells how to continue while frozen', () => {
     const freeze = new Freeze(new Crew(2, 16, new Row([], 0)), () => {});
     freeze.on();
-    assertThat('continue key is not shown', new Legend(freeze).text(), equalTo('C - to continue'));
+    assertThat('continue key is not shown', stripVTControlCharacters(new Legend(freeze).text()), equalTo('C - to continue'));
+  });
+  it('paints the keys on a gray background', () => {
+    assertThat('keys are not painted gray', new Legend(new Freeze(new Crew(3, 16, new Row([], 0)), () => {})).text(), equalTo('\x1b[47mF\x1b[49m - to finish and quit, \x1b[47m+/-\x1b[49m to add threads'));
+  });
+  it('paints the continue key on a gray background', () => {
+    const freeze = new Freeze(new Crew(4, 16, new Row([], 0)), () => {});
+    freeze.on();
+    assertThat('continue key is not painted gray', new Legend(freeze).text(), equalTo('\x1b[47mC\x1b[49m - to continue'));
   });
 });

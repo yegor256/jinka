@@ -159,4 +159,14 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.1.9', Date.now(), 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show(text);
     assertThat('notice was not drawn', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} ${text}$`)));
   });
+  it('cuts a line without counting the escape codes', () => {
+    const chunks = [];
+    new Tty({ columns: 5, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.0', Date.now(), 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show('a.md\tworking');
+    assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2K\x1b[47mF\x1b[49m - t'));
+  });
+  it('resets the style at the end of every line', () => {
+    const chunks = [];
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.2.1', Date.now(), 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(1).show('b.md\tworking');
+    assertThat('style was not reset after a line', chunks.at(-1).split('\n').slice(0, -1), everyItem(endsWith('\x1b[0m')));
+  });
 });
