@@ -82,4 +82,12 @@ describe('Wand', () => {
     await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Fixed it', tokens: '324K', model: 'Sonnet4.5' }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
     assertThat('tokens and model were not reported', notes, hasItem(equalTo([0, 'Fixed it (f.md 00:00 324K Sonnet4.5)'])));
   });
+  it('reports the link of a fulfilled wish at the end of its protocol line', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const link = `https://github.com/q/w/issues/${Math.floor(Math.random() * 1000)}`;
+    const notes = [];
+    await writeFile(join(dir, 'g.md'), randomUUID());
+    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Closed ü', link, tokens: '1K', model: '' }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
+    assertThat('link was not reported', notes, hasItem(equalTo([0, `Closed ü (g.md 00:00 1K) ${link}`])));
+  });
 });

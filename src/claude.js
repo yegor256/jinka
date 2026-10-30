@@ -20,7 +20,8 @@ export class Claude {
       await wish.text(),
       '',
       ...this.disk.lines(wish),
-      'When you finish, end with a single plain sentence that says what you did.'
+      'When you finish, end with a single plain sentence that says what you did.',
+      'On the next line, write the full URL of the GitHub issue or pull request you worked on, if there was one.'
     ].join('\n');
     const log = await this.disk.log(wish);
     const child = this.agent.start(['--plugin-dir', this.plugin, ...this.disk.args()], signal);
@@ -29,6 +30,7 @@ export class Claude {
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log, { end: false });
     let summary = '';
+    let link = '';
     const usage = new Tokens();
     const model = new Model();
     createInterface({ input: child.stdout }).on('line', (line) => {
@@ -36,6 +38,7 @@ export class Claude {
       usage.add(line);
       model.add(line);
       summary = new Event(line).summary() || summary;
+      link = new Event(line).link() || link;
       const text = new Event(line).text();
       if (text !== '') {
         row.show(text);
@@ -47,7 +50,7 @@ export class Claude {
           reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
         }
       });
-      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, tokens: usage.text(), model: model.text() })));
+      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, link, tokens: usage.text(), model: model.text() })));
     });
   }
 }

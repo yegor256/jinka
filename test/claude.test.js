@@ -42,6 +42,13 @@ describe('Claude', () => {
     await new Claude(new Agent(await new Script(0).path(), ''), '/plugin', new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-'))), { add: () => {} }).run(new Wish(dir, 'o.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
     assertThat('agent was not asked for a summary', lines.map((l) => l[1]).join('\n'), containsString('single plain sentence'));
   });
+  it('asks the agent to name the url of the issue or pull request', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const lines = [];
+    await writeFile(join(dir, 'q.md'), randomUUID());
+    await new Claude(new Agent(await new Script(0).path(), ''), '/plugin', new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-'))), { add: () => {} }).run(new Wish(dir, 'q.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('agent was not asked for a url', lines.map((l) => l[1]).join('\n'), containsString('URL of the GitHub issue or pull request'));
+  });
   it('sends the wish text to the agent', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const text = `Make me happy ${randomUUID()}`;

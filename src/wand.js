@@ -26,8 +26,8 @@ export class Wand {
     const wish = await this.wishes.next(signal);
     this.row.show(`${wish.name()}\tstarting the agent`);
     const start = Date.now();
-    const { code, summary, tokens, model } = await this.agent.run(wish, { show: (text) => this.row.show(`${wish.name()}\t${text}`) }, signal);
-    const suffix = `(${[wish.name(), new Duration(Date.now() - start).minutes(), tokens, model].filter((p) => p !== '').join(' ')})`;
+    const { code, summary, link = '', tokens, model } = await this.agent.run(wish, { show: (text) => this.row.show(`${wish.name()}\t${text}`) }, signal);
+    const suffix = [`(${[wish.name(), new Duration(Date.now() - start).minutes(), tokens, model].filter((p) => p !== '').join(' ')})`, link].filter((p) => p !== '').join(' ');
     if (code === 0) {
       await wish.close();
       this.protocol.show(`${summary === '' ? 'done' : summary} ${suffix}`);
