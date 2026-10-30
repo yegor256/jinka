@@ -7,6 +7,9 @@ path = [
     ".DS_Store",
     ".pdd",
     "README.md",
+    "package.json",
+    "package-lock.json",
+    "plugin/**",
     "renovate.json",
 ]
 precedence = "override"

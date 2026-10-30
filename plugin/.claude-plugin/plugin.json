@@ -1,0 +1,8 @@
+{
+  "name": "jinka",
+  "description": "Skills that jinka gives to every agent working on a wish",
+  "version": "0.0.0",
+  "author": {
+    "name": "Yegor Bugayenko"
+  }
+}
