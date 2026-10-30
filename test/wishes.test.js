@@ -65,16 +65,30 @@ describe('Wishes', () => {
     await (await wishes.next(AbortSignal.timeout(1000))).close();
     assertThat('wish was not archived', await readdir(archive), hasItem('a.md'));
   });
-  it('keeps a wish that was there at startup', async () => {
+  it('keeps a capitalized wish that was there at startup', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
-    const name = `${randomUUID()}.md`;
+    const name = `Q${randomUUID()}.md`;
     await writeFile(join(dir, name), randomUUID());
     await (await new Wishes(dir, 10).next(AbortSignal.timeout(1000))).close();
     assertThat('startup wish was deleted', await readdir(dir), equalTo([name]));
   });
+  it('deletes a lowercase wish that was there at startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, `q${randomUUID()}.md`), randomUUID());
+    await (await new Wishes(dir, 10).next(AbortSignal.timeout(1000))).close();
+    assertThat('lowercase startup wish was kept', await readdir(dir), empty());
+  });
+  it('keeps a capitalized wish in a subdirectory that was there at startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const sub = `h${randomUUID()}`;
+    await mkdir(join(dir, sub));
+    await writeFile(join(dir, sub, 'Wx-ok.md'), randomUUID());
+    await (await new Wishes(dir, 10).next(AbortSignal.timeout(1000))).close();
+    assertThat('nested capitalized wish was deleted', await readdir(join(dir, sub)), equalTo(['Wx-ok.md']));
+  });
   it('dont give a permanent wish again during the pause after success', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
-    await writeFile(join(dir, `${randomUUID()}.md`), randomUUID());
+    await writeFile(join(dir, `K${randomUUID()}.md`), randomUUID());
     const wishes = new Wishes(dir, 10, '', 60000);
     await (await wishes.next(AbortSignal.timeout(1000))).close();
     await promiseThat('permanent wish was given again without a pause', wishes.next(AbortSignal.timeout(200)), rejected());

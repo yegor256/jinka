@@ -49,7 +49,7 @@ const program = new Command()
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
-  .option('--pause <ms>', 'how long a wish that was there at startup waits after a success before it runs again', positive, 3600000)
+  .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 3600000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .parse();
 const values = program.opts();
