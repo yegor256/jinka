@@ -92,6 +92,22 @@ describe('Tty', () => {
     tty.close();
     assertThat('normal buffer was not restored', chunks, hasItem('\x1b[?25h\x1b[?1049l'));
   });
+  it('prints the protocol lines that no longer fit the screen on close', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, 2, new Status('0.1.6', Date.now(), 'sonnet'), new Legend(new Freeze(1, () => {})));
+    [`x.md\t${text}`, 'y.md\tsecond', 'z.md\tthird'].forEach((t) => tty.protocol(1).show(t));
+    tty.close();
+    assertThat('old protocol line was not printed on close', chunks.at(-1), containsString(`[2] x.md  ${text}\n`));
+  });
+  it('prints the protocol right after the normal buffer comes back', () => {
+    const chunks = [];
+    const text = randomUUID();
+    const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.7', Date.now(), 'sonnet'), new Legend(new Freeze(1, () => {})));
+    tty.protocol(0).show(`b.md\t${text}`);
+    tty.close();
+    assertThat('protocol was not printed after the normal buffer', chunks.slice(chunks.indexOf('\x1b[?25h\x1b[?1049l') + 1).join(''), containsString(text));
+  });
   it('writes nothing on close when it never drew', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, 1, new Status('0.1.1', Date.now(), 'sonnet'), new Legend(new Freeze(1, () => {}))).close();
