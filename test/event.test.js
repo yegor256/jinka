@@ -50,9 +50,9 @@ describe('Event', () => {
   it('explains searching in files', () => {
     const line = JSON.stringify({
       type: 'assistant',
-      message: { content: [{ type: 'tool_use', name: 'Grep', input: { pattern: 'fo+\\b' } }] }
+      message: { content: [{ type: 'tool_use', name: 'Grep', input: { pattern: 'ba+r\\d' } }] }
     });
-    assertThat('search was not explained', new Event(line).text(), equalTo('searching for "fo+\\b"'));
+    assertThat('search was not explained', new Event(line).text(), equalTo('searching for "ba+r\\d"'));
   });
   it('explains looking for files', () => {
     const line = JSON.stringify({
