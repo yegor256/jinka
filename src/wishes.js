@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { readdir } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { basename, join, relative } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Wish } from './wish.js';
 import { Archived } from './archived.js';
@@ -36,7 +36,7 @@ export class Wishes {
     this.claims.delete(path);
     this.claims.set(path, true);
     const wish = new Wish(this.dir, path, this.claims);
-    if (this.startup[0].has(path)) {
+    if (this.startup[0].has(path) && /^[A-Z]/.test(basename(path))) {
       return new Permanent(wish, this.pause);
     }
     return this.archive === '' ? wish : new Archived(wish, this.dir, this.archive);

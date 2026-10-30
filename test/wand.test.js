@@ -17,9 +17,9 @@ describe('Wand', () => {
     await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, new Row([], 0), new Row([], 0)).run(AbortSignal.timeout(500));
     assertThat('wish was not deleted', await readdir(dir), empty());
   });
-  it('keeps a startup wish after agent succeeds', async () => {
+  it('keeps a capitalized startup wish after agent succeeds', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
-    const name = `${randomUUID()}.md`;
+    const name = `P${randomUUID()}.md`;
     await writeFile(join(dir, name), randomUUID());
     await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, new Row([], 0), new Row([], 0)).run(AbortSignal.timeout(300));
     assertThat('startup wish was deleted', await readdir(dir), equalTo([name]));
