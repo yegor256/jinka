@@ -5,7 +5,9 @@
  * The keyboard of the terminal, read one raw key press at a time.
  * The F key turns the freeze on, the C key turns it off, in either
  * case, and Ctrl+C interrupts jinka, since the terminal in raw mode
- * no longer turns it into a signal.
+ * no longer turns it into a signal. A stream that is not a terminal,
+ * such as a pipe, is read as is, which lets a parent process
+ * interrupt jinka where there are no POSIX signals.
  */
 export class Keys {
   constructor(stream, freeze, interrupt) {
@@ -14,7 +16,9 @@ export class Keys {
     this.interrupt = interrupt;
   }
   listen() {
-    this.stream.setRawMode(true);
+    if (this.stream.isTTY) {
+      this.stream.setRawMode(true);
+    }
     this.stream.on('data', (chunk) => [...chunk.toString()].forEach((k) => this.#press(k)));
   }
   #press(key) {

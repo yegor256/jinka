@@ -18,7 +18,7 @@ describe('jinka command', () => {
     const jinka = spawn(
       process.execPath,
       ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', dir],
-      { stdio: 'ignore' }
+      { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
     await Promise.all(['a', 'b', 'c'].map((n) => writeFile(join(dir, `${n}.md`), randomUUID())));
@@ -26,7 +26,7 @@ describe('jinka command', () => {
     while ((await readdir(archive)).length < 3 && Date.now() < deadline) {
       await setTimeout(50);
     }
-    jinka.kill('SIGINT');
+    jinka.stdin.write('\x03');
     const [code] = await Promise.race([
       once(jinka, 'exit'),
       setTimeout(5000).then(() => [-1])
@@ -39,7 +39,7 @@ describe('jinka command', () => {
     const jinka = spawn(
       process.execPath,
       ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', dir],
-      { stdio: 'ignore' }
+      { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
     await Promise.all(['a', 'b', 'c'].map((n) => writeFile(join(dir, `${n}.md`), randomUUID())));
@@ -47,7 +47,7 @@ describe('jinka command', () => {
     while ((await readdir(archive)).length < 3 && Date.now() < deadline) {
       await setTimeout(50);
     }
-    jinka.kill('SIGINT');
+    jinka.stdin.write('\x03');
     await once(jinka, 'exit');
     assertThat('some late wishes were not archived', (await readdir(archive)).sort(), equalTo(['a.md', 'b.md', 'c.md']));
   });
@@ -58,7 +58,7 @@ describe('jinka command', () => {
     const jinka = spawn(
       process.execPath,
       ['bin/jinka.js', '--agent', await new Script(0).path(), '--interval', '50', dir],
-      { stdio: 'ignore', env: { ...process.env, HOME: home } }
+      { stdio: ['pipe', 'ignore', 'ignore'], env: { ...process.env, HOME: home, USERPROFILE: home } }
     );
     await setTimeout(500);
     await writeFile(join(dir, 'a.md'), randomUUID());
@@ -66,7 +66,7 @@ describe('jinka command', () => {
     while ((await readdir(archive).catch(() => [])).length < 1 && Date.now() < deadline) {
       await setTimeout(50);
     }
-    jinka.kill('SIGINT');
+    jinka.stdin.write('\x03');
     await once(jinka, 'exit');
     assertThat('the wish was not archived into the home directory', await readdir(archive).catch(() => []), equalTo(['a.md']));
   });

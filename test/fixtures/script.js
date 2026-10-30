@@ -7,6 +7,8 @@ import { join } from 'node:path';
 
 /**
  * A fake agent, generated at runtime as a tiny executable Node script.
+ * On Windows, which ignores the shebang line, the script is started
+ * by a batch file next to it, the way npm starts claude there.
  * It reads the prompt from its standard input, prints every prompt line
  * and its own arguments as stream-json events, reports its exit code
  * to the standard error, waits, and exits with the given code.
@@ -17,7 +19,8 @@ export class Script {
     this.delay = delay;
   }
   async path() {
-    const file = join(await mkdtemp(join(tmpdir(), 'jinka-')), 'agent.js');
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const file = join(dir, 'agent.js');
     await writeFile(
       file,
       [
@@ -34,6 +37,11 @@ export class Script {
       ].join('\n'),
       { mode: 0o755 }
     );
-    return file;
+    if (process.platform !== 'win32') {
+      return file;
+    }
+    const cmd = join(dir, 'agent.cmd');
+    await writeFile(cmd, `@"${process.execPath}" "%~dp0agent.js" %*\r\n`);
+    return cmd;
   }
 }

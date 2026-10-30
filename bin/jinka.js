@@ -63,9 +63,7 @@ const interrupt = () => {
   controller.abort();
 };
 process.on('SIGINT', interrupt);
-if (process.stdin.isTTY) {
-  new Keys(process.stdin, freeze, interrupt).listen();
-}
+new Keys(process.stdin, freeze, interrupt).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),

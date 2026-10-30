@@ -9,8 +9,13 @@ import { Freeze } from '../src/freeze.js';
 describe('Keys', () => {
   it('turns the terminal into raw mode', () => {
     const modes = [];
-    new Keys(Object.assign(new EventEmitter(), { setRawMode: (m) => modes.push(m) }), new Freeze(2, () => {}), () => {}).listen();
+    new Keys(Object.assign(new EventEmitter(), { isTTY: true, setRawMode: (m) => modes.push(m) }), new Freeze(2, () => {}), () => {}).listen();
     assertThat('raw mode was not turned on', modes, equalTo([true]));
+  });
+  it('leaves a stream that is not a terminal as is', () => {
+    const modes = [];
+    new Keys(Object.assign(new EventEmitter(), { setRawMode: (m) => modes.push(m) }), new Freeze(2, () => {}), () => {}).listen();
+    assertThat('raw mode was turned on for a pipe', modes, equalTo([]));
   });
   it('turns the freeze on by the lowercase key', () => {
     const stream = Object.assign(new EventEmitter(), { setRawMode: () => {} });
