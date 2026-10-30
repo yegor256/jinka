@@ -51,6 +51,25 @@ describe('jinka command', () => {
     await once(jinka, 'exit');
     assertThat('some late wishes were not archived', (await readdir(archive)).sort(), equalTo(['a.md', 'b.md', 'c.md']));
   });
+  it('archives wishes into the home directory by default', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const home = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const archive = join(home, '.jinka', 'archive');
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--interval', '50', dir],
+      { stdio: 'ignore', env: { ...process.env, HOME: home } }
+    );
+    await setTimeout(500);
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const deadline = Date.now() + 8000;
+    while ((await readdir(archive).catch(() => [])).length < 1 && Date.now() < deadline) {
+      await setTimeout(50);
+    }
+    jinka.kill('SIGINT');
+    await once(jinka, 'exit');
+    assertThat('the wish was not archived into the home directory', await readdir(archive).catch(() => []), equalTo(['a.md']));
+  });
   it('prints help with option descriptions', () => {
     assertThat(
       'help did not describe the threads option',
