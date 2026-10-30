@@ -49,30 +49,30 @@ describe('Wand', () => {
     const name = `${randomUUID()}.md`;
     const notes = [];
     await writeFile(join(dir, name), randomUUID());
-    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '' }) }, new Row([], 0), new Row(notes, 3)).run(AbortSignal.timeout(300));
-    assertThat('fulfilled wish was not reported', notes, hasItem(equalTo([3, `${name}\tdone in 00:00`])));
+    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '' }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
+    assertThat('fulfilled wish was not reported', notes, hasItem(equalTo([0, `done (${name} 00:00)`])));
   });
   it('reports a failed wish with its exit code to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const notes = [];
     await writeFile(join(dir, 'c.md'), randomUUID());
-    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 42, summary: '' }) }, new Row([], 0), new Row(notes, 1)).run(AbortSignal.timeout(300));
-    assertThat('failed wish was not reported', notes.map((n) => n[1]), hasItem(matchesPattern(/^c\.md\tfailed with exit code 42 after \d{2}:\d{2}$/)));
+    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 42, summary: '' }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
+    assertThat('failed wish was not reported', notes.map((n) => n[1]), hasItem(matchesPattern(/^failed with exit code 42 \(c\.md \d{2}:\d{2}\)$/)));
   });
   it('reports what was done for a fulfilled wish to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const summary = `Merged PR #${randomUUID()} ü`;
     const notes = [];
     await writeFile(join(dir, 'd.md'), randomUUID());
-    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary }) }, new Row([], 0), new Row(notes, 2)).run(AbortSignal.timeout(300));
-    assertThat('summary of the fulfilled wish was not reported', notes, hasItem(equalTo([2, `d.md\tdone in 00:00: ${summary}`])));
+    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 0, summary }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
+    assertThat('summary of the fulfilled wish was not reported', notes, hasItem(equalTo([0, `${summary} (d.md 00:00)`])));
   });
   it('reports what was done for a failed wish to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const summary = `Gave up on ${randomUUID()}`;
     const notes = [];
     await writeFile(join(dir, 'e.md'), randomUUID());
-    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 7, summary }) }, new Row([], 0), new Row(notes, 4)).run(AbortSignal.timeout(300));
-    assertThat('summary of the failed wish was not reported', notes.map((n) => n[1]), hasItem(equalTo(`e.md\tfailed with exit code 7 after 00:00: ${summary}`)));
+    await new Wand(new Wishes(dir, 10), { run: async () => ({ code: 7, summary }) }, new Row([], 0), new Row(notes, 0)).run(AbortSignal.timeout(300));
+    assertThat('summary of the failed wish was not reported', notes.map((n) => n[1]), hasItem(equalTo(`failed with exit code 7: ${summary} (e.md 00:00)`)));
   });
 });

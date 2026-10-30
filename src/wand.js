@@ -27,13 +27,13 @@ export class Wand {
     this.row.show(`${wish.name()}\tstarting the agent`);
     const start = Date.now();
     const { code, summary } = await this.agent.run(wish, { show: (text) => this.row.show(`${wish.name()}\t${text}`) }, signal);
-    const tail = summary === '' ? '' : `: ${summary}`;
+    const suffix = `(${wish.name()} ${new Duration(Date.now() - start).minutes()})`;
     if (code === 0) {
       await wish.close();
-      this.protocol.show(`${wish.name()}\tdone in ${new Duration(Date.now() - start).minutes()}${tail}`);
+      this.protocol.show(`${summary === '' ? 'done' : summary} ${suffix}`);
     } else {
       wish.free();
-      this.protocol.show(`${wish.name()}\tfailed with exit code ${code} after ${new Duration(Date.now() - start).minutes()}${tail}`);
+      this.protocol.show(`failed with exit code ${code}${summary === '' ? '' : `: ${summary}`} ${suffix}`);
     }
   }
 }

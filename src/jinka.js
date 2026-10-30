@@ -13,7 +13,7 @@ export class Jinka {
   async run(signal) {
     await this.crew.run(
       this.wishes,
-      (i, wishes, s) => new Wand(wishes, this.agent, this.screen.row(i), this.screen.protocol(i)).run(s),
+      (i, wishes, s) => new Wand(wishes, this.agent, this.screen.row(i), this.screen.notice()).run(s),
       signal
     );
   }

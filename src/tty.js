@@ -18,9 +18,6 @@ export class Tty {
   row(index) {
     return new Row({ push: ([i, text]) => this.#update(i, text) }, index);
   }
-  protocol(index) {
-    return new Row({ push: ([i, text]) => this.#note(`[${i + 1}] ${text.replace('\t', '  ')}`) }, index);
-  }
   notice() {
     return new Row({ push: ([, text]) => this.#note(text) }, 0);
   }

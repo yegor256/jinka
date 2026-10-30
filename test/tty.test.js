@@ -36,16 +36,10 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.0.1', Date.now(), 'sonnet', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(0).show(`a.md\t${text}`);
     assertThat('row text was not drawn', chunks.join(''), containsString(text));
   });
-  it('shows a protocol line below the separator', () => {
-    const chunks = [];
-    const text = randomUUID();
-    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.0.2', Date.now(), 'sonnet', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).protocol(1).show(`b.md\t${text}`);
-    assertThat('protocol line was not drawn', stripVTControlCharacters(chunks.join('')).split('\n')[5], endsWith(`[2] b.md  ${text}`));
-  });
   it('shows only the newest protocol lines that fit', () => {
     const chunks = [];
     const tty = new Tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.0.3', Date.now(), 'sonnet', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {})));
-    ['x.md\tfirst', 'y.md\tsecond', 'z.md\tthird'].forEach((t) => tty.protocol(0).show(t));
+    ['first', 'second', 'third'].forEach((t) => tty.notice().show(t));
     assertThat('old protocol line was not dropped', chunks.at(-1), not(containsString('first')));
   });
   it('cuts lines to the terminal width', () => {
@@ -99,15 +93,15 @@ describe('Tty', () => {
     const chunks = [];
     const text = randomUUID();
     const tty = new Tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.1.6', Date.now(), 'sonnet', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {})));
-    [`x.md\t${text}`, 'y.md\tsecond', 'z.md\tthird'].forEach((t) => tty.protocol(1).show(t));
+    [text, 'second', 'third'].forEach((t) => tty.notice().show(t));
     tty.close();
-    assertThat('old protocol line was not printed on close', chunks.at(-1), containsString(`[2] x.md  ${text}\n`));
+    assertThat('old protocol line was not printed on close', chunks.at(-1), containsString(`${text}\n`));
   });
   it('prints the protocol right after the normal buffer comes back', () => {
     const chunks = [];
     const text = randomUUID();
     const tty = new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.1.7', Date.now(), 'sonnet', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {})));
-    tty.protocol(0).show(`b.md\t${text}`);
+    tty.notice().show(text);
     tty.close();
     assertThat('protocol was not printed after the normal buffer', chunks.slice(chunks.indexOf('\x1b[?25h\x1b[?1049l') + 1).join(''), containsString(text));
   });
@@ -134,8 +128,8 @@ describe('Tty', () => {
   it('leaves an empty line above the legend', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 7, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.1.4', Date.now(), 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {})))
-      .protocol(0)
-      .show(`b.md\t${randomUUID()}`);
+      .notice()
+      .show(randomUUID());
     assertThat('line above the legend is not empty', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo(''));
   });
   it('shows the continue key while frozen', () => {
