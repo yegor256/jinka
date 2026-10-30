@@ -31,6 +31,7 @@ export class Wishes {
       .filter((f) => f.isFile() && f.name.endsWith('.md'))
       .map((f) => join(relative(this.dir, f.parentPath), f.name))
       .sort();
+    signal.throwIfAborted();
     if (this.startup.length === 0) {
       this.startup.push(new Set(files));
     }

@@ -2,37 +2,39 @@
 // SPDX-License-Identifier: MIT
 
 import { assertThat, equalTo, promiseThat, rejected, fulfilled } from 'hamjest';
+import { Crew } from '../src/crew.js';
+import { Row } from '../src/row.js';
 import { Freeze } from '../src/freeze.js';
 
 describe('Freeze', () => {
   it('is not active from the start', () => {
-    assertThat('fresh freeze is active', new Freeze(3, () => {}).active(), equalTo(false));
+    assertThat('fresh freeze is active', new Freeze(new Crew(3, 16, new Row([], 0)), () => {}).active(), equalTo(false));
   });
   it('becomes active when turned on', () => {
-    const freeze = new Freeze(4, () => {});
+    const freeze = new Freeze(new Crew(4, 16, new Row([], 0)), () => {});
     freeze.on();
     assertThat('freeze did not turn on', freeze.active(), equalTo(true));
   });
   it('stops being active when turned off', () => {
-    const freeze = new Freeze(5, () => {});
+    const freeze = new Freeze(new Crew(5, 16, new Row([], 0)), () => {});
     freeze.on();
     freeze.off();
     assertThat('freeze did not turn off', freeze.active(), equalTo(false));
   });
   it('holds back a wand while active', async () => {
-    const freeze = new Freeze(2, () => {});
+    const freeze = new Freeze(new Crew(2, 16, new Row([], 0)), () => {});
     freeze.on();
     await promiseThat('wand was not held back', freeze.thaw(AbortSignal.timeout(50)), rejected());
   });
   it('lets a wand go when turned off', async () => {
-    const freeze = new Freeze(2, () => {});
+    const freeze = new Freeze(new Crew(2, 16, new Row([], 0)), () => {});
     freeze.on();
     setTimeout(() => freeze.off(), 20);
     await promiseThat('wand was not let go', freeze.thaw(AbortSignal.timeout(1000)), fulfilled());
   });
   it('quits when turned on while every wand is idle', () => {
     const quits = [];
-    const freeze = new Freeze(2, () => quits.push(true));
+    const freeze = new Freeze(new Crew(2, 16, new Row([], 0)), () => quits.push(true));
     freeze.enter();
     freeze.enter();
     freeze.on();
@@ -40,7 +42,7 @@ describe('Freeze', () => {
   });
   it('quits when the last busy wand becomes idle', () => {
     const quits = [];
-    const freeze = new Freeze(2, () => quits.push(true));
+    const freeze = new Freeze(new Crew(2, 16, new Row([], 0)), () => quits.push(true));
     freeze.enter();
     freeze.on();
     freeze.enter();
@@ -48,7 +50,7 @@ describe('Freeze', () => {
   });
   it('dont quit while a wand is busy', () => {
     const quits = [];
-    const freeze = new Freeze(3, () => quits.push(true));
+    const freeze = new Freeze(new Crew(3, 16, new Row([], 0)), () => quits.push(true));
     freeze.enter();
     freeze.enter();
     freeze.enter();
@@ -58,7 +60,7 @@ describe('Freeze', () => {
   });
   it('dont quit when every wand is idle without a freeze', () => {
     const quits = [];
-    const freeze = new Freeze(1, () => quits.push(true));
+    const freeze = new Freeze(new Crew(1, 16, new Row([], 0)), () => quits.push(true));
     freeze.enter();
     assertThat('freeze quit while not active', quits, equalTo([]));
   });
