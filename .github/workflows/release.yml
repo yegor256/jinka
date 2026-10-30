@@ -9,7 +9,7 @@ name: release
       - '*'
 permissions:
   id-token: write
-  contents: read
+  contents: write
 jobs:
   release:
     timeout-minutes: 15
@@ -25,3 +25,6 @@ jobs:
       - run: npm test
       - run: npm version --no-git-tag-version "${GITHUB_REF_NAME}"
       - run: npm publish --access public
+      - run: gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes --title "${GITHUB_REF_NAME}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
