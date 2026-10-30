@@ -1,0 +1,38 @@
+// SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
+// SPDX-License-Identifier: MIT
+
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+/**
+ * A fake agent, generated at runtime as a tiny executable Node script.
+ * It reads the prompt from its standard input, prints every prompt line
+ * and its own arguments as stream-json events, waits, and exits
+ * with the given code.
+ */
+export class Script {
+  constructor(code, delay = 0) {
+    this.code = code;
+    this.delay = delay;
+  }
+  async path() {
+    const file = join(await mkdtemp(join(tmpdir(), 'jinka-')), 'agent.js');
+    await writeFile(
+      file,
+      [
+        '#!/usr/bin/env node',
+        "let input = '';",
+        "process.stdin.on('data', (d) => { input += d; });",
+        "process.stdin.on('end', () => {",
+        "  const say = (t) => console.log(JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: t }] } }));",
+        "  input.split('\\n').filter((l) => l !== '').forEach(say);",
+        "  say(process.argv.slice(2).join(' '));",
+        `  setTimeout(() => process.exit(${this.code}), ${this.delay});`,
+        '});'
+      ].join('\n'),
+      { mode: 0o755 }
+    );
+    return file;
+  }
+}

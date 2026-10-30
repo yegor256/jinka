@@ -1,0 +1,31 @@
+{
+  "author": "Yegor Bugayenko",
+  "bin": {
+    "jinka": "bin/jinka.js"
+  },
+  "description": "Simple command line orchestrator of coding agents",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "hamjest": "^4.1.1",
+    "mocha": "^12.0.3"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "files": [
+    "bin",
+    "src",
+    "plugin"
+  ],
+  "license": "MIT",
+  "name": "jinka",
+  "repository": "github:yegor256/jinka",
+  "scripts": {
+    "test": "c8 --check-coverage --lines 80 mocha"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}
