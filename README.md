@@ -4,7 +4,7 @@ First, you create a directory with your wishes, one per Markdown file.
 You can start with a single wish:
 
 ```text
-wishes/
+my-wishes/
   make-me-happy.md
 ```
 
@@ -23,7 +23,7 @@ npm install -g jinka
 Finally, you run it, giving it the path to your directory with wishes:
 
 ```bash
-jinka wishes
+jinka my-wishes/
 ```
 
 That's it.
