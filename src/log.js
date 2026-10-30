@@ -15,5 +15,7 @@ export class Log {
   notice() {
     return new Protocol({ push: ([, text]) => this.stream.write(`${new Date().toTimeString().slice(0, 8)} ${text}\n`) });
   }
+  up() {}
+  down() {}
   close() {}
 }
