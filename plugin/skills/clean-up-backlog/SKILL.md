@@ -3,7 +3,7 @@ name: clean-up-backlog
 description: |
   Turns the neglected issues and pull requests of GitHub repositories into new wishes.
   Use when a wish says "keep my repositories in good shape", "clean up the backlog", "go through open issues", or names repositories whose backlog needs care.
-  Picks the oldest untouched items, skips those that already have a wish, wait for their author, or were triaged within the last day, skips pull requests whose latest review requests changes, and writes at most ten new wishes, one per item, into the wishes directory.
+  Picks the oldest untouched items, skips those that already have a wish, wait for their author, or were triaged within the last day, skips pull requests whose latest review requests changes, and writes at most as many new wishes as jinka runs threads, one per item, into the wishes directory.
 ---
 
 # Clean Up the Backlog
@@ -39,7 +39,7 @@ Skip issues triaged less than one day ago,
 
 ## Limit
 
-Write at most ten new wishes per run, across all repositories.
+Write at most as many new wishes per run as jinka runs threads, as the prompt says, across all repositories.
 Write no wish when every candidate was skipped.
 
 ## Wish

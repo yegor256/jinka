@@ -83,7 +83,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),
-    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), new Disk(dir, resolve(values.logs), resolve(values.memory)), new Meters([tokens, quota])),
+    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])),
     screen,
     crew
   ).run(controller.signal);
