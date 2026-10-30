@@ -8,8 +8,8 @@ import { join } from 'node:path';
 /**
  * A fake agent, generated at runtime as a tiny executable Node script.
  * It reads the prompt from its standard input, prints every prompt line
- * and its own arguments as stream-json events, waits, and exits
- * with the given code.
+ * and its own arguments as stream-json events, reports its exit code
+ * to the standard error, waits, and exits with the given code.
  */
 export class Script {
   constructor(code, delay = 0) {
@@ -28,6 +28,7 @@ export class Script {
         "  const say = (t) => console.log(JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: t }] } }));",
         "  input.split('\\n').filter((l) => l !== '').forEach(say);",
         "  say(process.argv.slice(2).join(' '));",
+        `  console.error('Exiting with code ${this.code}');`,
         `  setTimeout(() => process.exit(${this.code}), ${this.delay});`,
         '});'
       ].join('\n'),

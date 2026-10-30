@@ -1,25 +1,26 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { spawn } from 'node:child_process';
+import { createWriteStream } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
-import { join } from 'node:path';
+import { join, dirname, extname } from 'node:path';
 import { Event } from './event.js';
 
 /**
  * The coding agent that makes one wish come true.
- * It starts the agent process in headless mode, writes the prompt
- * to its standard input, and reports every event of its stream-json
- * output to a screen row. The model, when not empty, is passed
- * to the agent verbatim. The process gets SIGTERM when the signal
- * aborts.
+ * It starts the agent with the plugin and the directory of wishes,
+ * writes the prompt to its standard input, and reports every event
+ * of its stream-json output to a screen row. The raw output and
+ * error output of every run are saved into the logs directory,
+ * in a file named after the wish and the start time.
  */
 export class Claude {
-  constructor(command, plugin, dir, model) {
-    this.command = command;
+  constructor(agent, plugin, dir, logs) {
+    this.agent = agent;
     this.plugin = plugin;
     this.dir = dir;
-    this.model = model;
+    this.logs = logs;
   }
   async run(wish, row, signal) {
     const prompt = [
@@ -30,31 +31,30 @@ export class Claude {
       `The wish is written in the file ${join(this.dir, wish.name())}, ${wish.fate()}.`,
       `All wishes live in the directory ${this.dir}, and you may add new wishes there as Markdown files.`
     ].join('\n');
-    const agent = spawn(
-      this.command,
-      [
-        '-p', '--output-format', 'stream-json', '--verbose',
-        '--plugin-dir', this.plugin, '--add-dir', this.dir,
-        '--dangerously-skip-permissions',
-        ...(this.model === '' ? [] : ['--model', this.model])
-      ],
-      { signal, stdio: ['pipe', 'pipe', 'ignore'] }
+    const file = join(
+      this.logs,
+      `${wish.name().slice(0, wish.name().length - extname(wish.name()).length)}-${new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)}.jsonl`
     );
-    agent.stdin.on('error', () => {});
-    agent.stdin.end(prompt);
-    createInterface({ input: agent.stdout }).on('line', (line) => {
+    await mkdir(dirname(file), { recursive: true });
+    const log = createWriteStream(file);
+    const child = this.agent.start(['--plugin-dir', this.plugin, '--add-dir', this.dir], signal);
+    child.stdin.on('error', () => {});
+    child.stdin.end(prompt);
+    child.stdout.pipe(log, { end: false });
+    child.stderr.pipe(log, { end: false });
+    createInterface({ input: child.stdout }).on('line', (line) => {
       const text = new Event(line).text();
       if (text !== '') {
         row.show(text);
       }
     });
     return new Promise((resolve, reject) => {
-      agent.on('error', (e) => {
+      child.on('error', (e) => {
         if (!signal.aborted) {
-          reject(new Error(`Cannot start the agent "${this.command}": ${e.message}`));
+          reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
         }
       });
-      agent.on('close', (code) => resolve(code ?? 1));
+      child.on('close', (code) => log.end(() => resolve(code ?? 1)));
     });
   }
 }
