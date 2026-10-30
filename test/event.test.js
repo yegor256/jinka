@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { stripVTControlCharacters } from 'node:util';
 import { assertThat, equalTo } from 'hamjest';
 import { Event } from '../src/event.js';
 
@@ -10,7 +11,14 @@ describe('Event', () => {
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'gh pr list --repo foo/bar' } }] }
     });
-    assertThat('tool call was not summarized', new Event(line).text(), equalTo('Bash: gh pr list --repo foo/bar'));
+    assertThat('tool call was not summarized', stripVTControlCharacters(new Event(line).text()), equalTo('Bash: gh pr list --repo foo/bar'));
+  });
+  it('paints a shell command without description in gray', () => {
+    const line = JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'git log --oneline | head -7' } }] }
+    });
+    assertThat('shell command was not gray', new Event(line).text(), equalTo('\x1b[90mBash: git log --oneline | head -7\x1b[39m'));
   });
   it('explains a shell command by its description', () => {
     const line = JSON.stringify({
@@ -87,7 +95,7 @@ describe('Event', () => {
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Zork', input: { query: 'xyzzy' } }] }
     });
-    assertThat('unknown tool was not summarized', new Event(line).text(), equalTo('Zork: xyzzy'));
+    assertThat('unknown tool was not summarized', stripVTControlCharacters(new Event(line).text()), equalTo('Zork: xyzzy'));
   });
   it('keeps only the first line of the agent text', () => {
     const line = JSON.stringify({
@@ -101,7 +109,7 @@ describe('Event', () => {
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'TodoWrite', input: {} }] }
     });
-    assertThat('tool name was not shown', new Event(line).text(), equalTo('TodoWrite'));
+    assertThat('tool name was not shown', stripVTControlCharacters(new Event(line).text()), equalTo('TodoWrite'));
   });
   it('stays silent on tool results', () => {
     const line = JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result' }] } });

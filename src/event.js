@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { styleText } from 'node:util';
+
 export class Event {
   constructor(line) {
     this.line = line;
@@ -39,10 +41,14 @@ export class Event {
       if (phrase !== undefined) {
         return this.#first(phrase);
       }
-      return [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
-        .filter((p) => p !== undefined)
-        .map((p) => this.#first(String(p)))
-        .join(': ');
+      return styleText(
+        'gray',
+        [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
+          .filter((p) => p !== undefined)
+          .map((p) => this.#first(String(p)))
+          .join(': '),
+        { validateStream: false }
+      );
     }
     return '';
   }
