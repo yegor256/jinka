@@ -59,6 +59,10 @@ Write like a human maintainer, short and specific.
 Open with substance, never with boilerplate.
 Keep prose free of emoji and of `Generated with` footers.
 
+Watch CI jobs on the PR until all of them are green.
+Even if they fail for a reason unrelated to your changes, fix the branch.
+Stay on the PR until all CI jobs are green.
+
 Remember every visit, including a skipped issue,
   in the memory directory given in the prompt.
 Append one line `<number>,<time>` to `<owner>/<repo>/triaged.csv` there,
