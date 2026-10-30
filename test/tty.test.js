@@ -216,4 +216,14 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.2.7', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).notice().info(randomUUID());
     assertThat('information was orange', chunks.at(-1), not(containsString('\x1b[38;2;255;135;0m')));
   });
+  it('paints the timer of a running thread green', () => {
+    const chunks = [];
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.2.8', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show(`${randomUUID()}.md\tworking`);
+    assertThat('timer of a running thread was not green', chunks.at(-1), containsString('\x1b[32m00:00\x1b[39m'));
+  });
+  it('paints the timer of an idle thread gray', () => {
+    const chunks = [];
+    new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.2.9', Date.now(), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show(`\x1b[90midle\x1b[39m\t${randomUUID()}`);
+    assertThat('timer of an idle thread was not gray', chunks.at(-1), containsString('\x1b[90m00:00\x1b[39m'));
+  });
 });

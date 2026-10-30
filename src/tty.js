@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { stripVTControlCharacters } from 'node:util';
+import { stripVTControlCharacters, styleText } from 'node:util';
 import sliceAnsi from 'slice-ansi';
 import { Row } from './row.js';
 import { Protocol } from './protocol.js';
@@ -63,7 +63,7 @@ export class Tty {
     const top = [
       this.status.text(),
       '',
-      ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
+      ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${styleText(['', 'idle'].includes(stripVTControlCharacters(l.head)) ? 'gray' : 'green', new Duration(Date.now() - l.start).minutes(), { validateStream: false })}  ${l.tail}`),
       '-'.repeat(10),
       ...notes.slice(Math.max(0, notes.length - Math.max(0, rows - lines.length - 5)))
     ];
