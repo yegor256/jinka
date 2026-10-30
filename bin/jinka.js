@@ -12,6 +12,10 @@ import { Claude } from '../src/claude.js';
 import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
 import { Status } from '../src/status.js';
+import { Freeze } from '../src/freeze.js';
+import { Frozen } from '../src/frozen.js';
+import { Keys } from '../src/keys.js';
+import { Legend } from '../src/legend.js';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -35,20 +39,30 @@ if (!Number.isInteger(threads) || threads < 1 || !Number.isInteger(interval) || 
 }
 const dir = resolve(positionals[0]);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const freeze = new Freeze(threads, () => process.exit(0));
 const screen = process.stdout.isTTY
-  ? new Tty(process.stdout, threads, new Status(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version, Date.now(), values.model))
+  ? new Tty(
+    process.stdout,
+    threads,
+    new Status(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version, Date.now(), values.model),
+    new Legend(freeze)
+  )
   : new Log(process.stdout);
 process.on('exit', () => screen.close());
 const controller = new AbortController();
-process.on('SIGINT', () => {
+const interrupt = () => {
   if (controller.signal.aborted) {
     process.exit(130);
   }
   controller.abort();
-});
+};
+process.on('SIGINT', interrupt);
+if (process.stdin.isTTY) {
+  new Keys(process.stdin, freeze, interrupt).listen();
+}
 try {
   await new Jinka(
-    new Wishes(dir, interval, values.archive === '' ? '' : resolve(values.archive)),
+    new Frozen(new Wishes(dir, interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
     new Claude(values.agent, join(root, 'plugin'), dir, values.model),
     screen,
     threads
