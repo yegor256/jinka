@@ -62,7 +62,7 @@ const dir = resolve(values.wishes);
 const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { show: (text) => screen.notice().show(text) });
-const freeze = new Freeze(crew, () => process.exit(0));
+const freeze = new Freeze(crew, { show: (text) => screen.notice().show(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,

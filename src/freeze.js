@@ -2,18 +2,21 @@
 // SPDX-License-Identifier: MIT
 
 export class Freeze {
-  constructor(crew, quit) {
+  constructor(crew, notice, quit) {
     this.crew = crew;
+    this.notice = notice;
     this.quit = quit;
     this.state = { frozen: false, idle: 0 };
     this.waiters = [];
   }
   on() {
     this.state.frozen = true;
+    this.notice.show('finishing, now we wait for all jobs to finish and then quit');
     this.#check();
   }
   off() {
     this.state.frozen = false;
+    this.notice.show('continuing, new jobs will start again');
     this.waiters.splice(0).forEach((w) => w());
   }
   active() {
