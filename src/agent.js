@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { spawn } from 'node:child_process';
+import spawn from 'cross-spawn';
 
 /**
  * The executable of a coding agent together with the model it works on.
  * It starts the agent in headless mode with stream-json output and
  * without permission prompts. The model, when not empty, is passed
  * to the agent verbatim. The process gets SIGTERM when the signal
- * aborts.
+ * aborts. On Windows the executable may be a batch file, such as
+ * the claude.cmd that npm installs, so the arguments are quoted for
+ * the command interpreter.
  */
 export class Agent {
   constructor(command, model) {
