@@ -43,6 +43,9 @@ The `--agent` option is the path to the agent executable
   (`claude` by default).
 The `--interval` option is how many milliseconds an idle worker waits
   before it looks for new wishes again (5000 by default).
+The `--model` option names the model the agent uses,
+  such as `claude-opus-5-5`, and is passed to the agent verbatim
+  (the agent picks its own default when the option is absent).
 Press Ctrl-C to stop.
 
 Be careful: `jinka` starts Claude Code with the

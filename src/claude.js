@@ -10,14 +10,16 @@ import { Event } from './event.js';
  * The coding agent that makes one wish come true.
  * It starts the agent process in headless mode, writes the prompt
  * to its standard input, and reports every event of its stream-json
- * output to a screen row. The process gets SIGTERM when the signal
+ * output to a screen row. The model, when not empty, is passed
+ * to the agent verbatim. The process gets SIGTERM when the signal
  * aborts.
  */
 export class Claude {
-  constructor(command, plugin, dir) {
+  constructor(command, plugin, dir, model) {
     this.command = command;
     this.plugin = plugin;
     this.dir = dir;
+    this.model = model;
   }
   async run(wish, row, signal) {
     const prompt = [
@@ -33,7 +35,8 @@ export class Claude {
       [
         '-p', '--output-format', 'stream-json', '--verbose',
         '--plugin-dir', this.plugin, '--add-dir', this.dir,
-        '--dangerously-skip-permissions'
+        '--dangerously-skip-permissions',
+        ...(this.model === '' ? [] : ['--model', this.model])
       ],
       { signal, stdio: ['pipe', 'pipe', 'ignore'] }
     );
