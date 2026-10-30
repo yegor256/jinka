@@ -18,6 +18,12 @@ describe('Log', () => {
     new Log({ write: (c) => chunks.push(c) }).protocol(4).show(`b.md\t${text}`);
     assertThat('protocol line was not printed', chunks.join(''), matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} \\[5\\] b\\.md  ${text}\\n$`)));
   });
+  it('prints a change without colors', () => {
+    const chunks = [];
+    const text = randomUUID();
+    new Log({ write: (c) => chunks.push(c) }).row(1).show(`c.md\t\x1b[90m${text}\x1b[39m`);
+    assertThat('colors were printed', chunks.join(''), equalTo(`[2] c.md  ${text}\n`));
+  });
   it('writes nothing on close', () => {
     const chunks = [];
     new Log({ write: (c) => chunks.push(c) }).close();

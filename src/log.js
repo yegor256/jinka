@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { stripVTControlCharacters } from 'node:util';
 import { Row } from './row.js';
 
 export class Log {
@@ -8,7 +9,7 @@ export class Log {
     this.stream = stream;
   }
   row(index) {
-    return new Row({ push: ([i, text]) => this.stream.write(`[${i + 1}] ${text.replace('\t', '  ')}\n`) }, index);
+    return new Row({ push: ([i, text]) => this.stream.write(`[${i + 1}] ${stripVTControlCharacters(text).replace('\t', '  ')}\n`) }, index);
   }
   protocol(index) {
     return new Row(
