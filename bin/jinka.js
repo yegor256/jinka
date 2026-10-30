@@ -61,7 +61,7 @@ const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     crew,
-    new Status(pkg.version, Date.now(), values.model, tokens),
+    new Status(pkg.version, Date.now(), values.agent, values.model, tokens),
     new Legend(freeze)
   )
   : new Log(process.stdout);
