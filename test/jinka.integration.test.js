@@ -8,7 +8,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout } from 'node:timers/promises';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo, containsString, not } from 'hamjest';
+import { assertThat, equalTo, containsString, matchesPattern, not } from 'hamjest';
 import { Script } from './fixtures/script.js';
 
 describe('jinka command', () => {
@@ -102,6 +102,13 @@ describe('jinka command', () => {
       'help did not show a one minute default pause',
       spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout.replace(/\s+/g, ' '),
       containsString('runs again (default: 60000)')
+    );
+  });
+  it('prints the version at the end of the help description', () => {
+    assertThat(
+      'help did not end its description with the version',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout,
+      matchesPattern(/coding agents \(\d+\.\d+\.\d+\)\n/)
     );
   });
   it('prints the version', () => {
