@@ -27,7 +27,7 @@ npm install -g @yegor256/jinka
 Finally, you run it, giving it the path to your directory with wishes:
 
 ```bash
-jinka my-wishes/
+jinka --wishes=my-wishes/
 ```
 
 That's it.
