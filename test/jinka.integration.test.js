@@ -4,11 +4,11 @@
 import { mkdtemp, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout } from 'node:timers/promises';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo } from 'hamjest';
+import { assertThat, equalTo, containsString, not } from 'hamjest';
 import { Script } from './fixtures/script.js';
 
 describe('jinka command', () => {
@@ -50,5 +50,33 @@ describe('jinka command', () => {
     jinka.kill('SIGINT');
     await once(jinka, 'exit');
     assertThat('some late wishes were not archived', (await readdir(archive)).sort(), equalTo(['a.md', 'b.md', 'c.md']));
+  });
+  it('prints help with option descriptions', () => {
+    assertThat(
+      'help did not describe the threads option',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout,
+      containsString('how many wishes run at once')
+    );
+  });
+  it('prints the version', () => {
+    assertThat(
+      'version was not printed',
+      spawnSync(process.execPath, ['bin/jinka.js', '--version'], { encoding: 'utf8', timeout: 5000 }).status,
+      equalTo(0)
+    );
+  });
+  it('rejects an unknown option without a stack trace', () => {
+    assertThat(
+      'unknown option produced a stack trace',
+      spawnSync(process.execPath, ['bin/jinka.js', `--${randomUUID()}`, 'x'], { encoding: 'utf8', timeout: 5000 }).stderr,
+      not(containsString('    at '))
+    );
+  });
+  it('rejects a non-integer number of threads', () => {
+    assertThat(
+      'non-integer threads were accepted',
+      spawnSync(process.execPath, ['bin/jinka.js', '--threads', '2.5', 'x'], { encoding: 'utf8', timeout: 5000 }).status,
+      equalTo(1)
+    );
   });
 });
