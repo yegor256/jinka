@@ -21,6 +21,9 @@ export class Archived {
   async text() {
     return this.origin.text();
   }
+  fate() {
+    return this.origin.fate();
+  }
   async close() {
     await copyFile(join(this.dir, this.origin.name()), await this.#target());
     await this.origin.close();

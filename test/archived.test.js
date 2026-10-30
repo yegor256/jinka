@@ -42,4 +42,8 @@ describe('Archived', () => {
     new Archived(new Wish('/a', 'e.md', claims), '/a', '/b').free();
     assertThat('claim was not released', claims.get('e.md'), equalTo(false));
   });
+  it('keeps the fate of the wish', () => {
+    const wish = new Wish('/a', 'f.md', new Map());
+    assertThat('fate was changed', new Archived(wish, '/a', '/b').fate(), equalTo(wish.fate()));
+  });
 });
