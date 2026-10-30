@@ -111,7 +111,7 @@ describe('jinka command', () => {
     assertThat(
       'the agent did not load skills from the given directory',
       (await Promise.all((await readdir(logs)).map((f) => readFile(join(logs, f), 'utf8')))).join(''),
-      containsString(`--plugin-dir ${skill}`)
+      containsString(JSON.stringify(`--plugin-dir ${skill}`).slice(1, -1))
     );
   });
   it('prints help with option descriptions', () => {
