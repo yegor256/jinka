@@ -77,7 +77,7 @@ describe('Claude', () => {
     await mkdir(join(dir, 'deep'));
     await writeFile(join(dir, 'deep', 'fix-the-parser.md'), randomUUID());
     await new Claude(new Agent(await new Script(0).path(), ''), '/plugin', dir, logs, { add: () => {} }).run(new Wish(dir, join('deep', 'fix-the-parser.md'), new Map()), new Row([], 0), AbortSignal.timeout(5000));
-    assertThat('log was misnamed', (await readdir(logs, { recursive: true })).join(' '), matchesPattern(/deep\/fix-the-parser-\d{8}-\d{6}\.jsonl/));
+    assertThat('log was misnamed', (await readdir(logs, { recursive: true })).join(' '), matchesPattern(/deep[\\/]fix-the-parser-\d{8}-\d{6}\.jsonl/));
   });
   it('reports every line of the agent to the tokens', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));

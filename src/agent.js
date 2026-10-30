@@ -10,7 +10,8 @@ import spawn from 'cross-spawn';
  * to the agent verbatim. The process gets SIGTERM when the signal
  * aborts. On Windows the executable may be a batch file, such as
  * the claude.cmd that npm installs, so the arguments are quoted for
- * the command interpreter.
+ * the command interpreter. Killing that interpreter would leave the
+ * agent behind it alive, so there the whole process tree is killed.
  */
 export class Agent {
   constructor(command, model) {
@@ -18,7 +19,8 @@ export class Agent {
     this.model = model;
   }
   start(args, signal) {
-    return spawn(
+    const windows = process.platform === 'win32';
+    const child = spawn(
       this.command,
       [
         '-p', '--output-format', 'stream-json', '--verbose',
@@ -26,7 +28,15 @@ export class Agent {
         '--dangerously-skip-permissions',
         ...(this.model === '' ? [] : ['--model', this.model])
       ],
-      { signal, stdio: 'pipe' }
+      windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' }
     );
+    if (windows) {
+      signal.addEventListener(
+        'abort',
+        () => spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' }),
+        { once: true }
+      );
+    }
+    return child;
   }
 }
