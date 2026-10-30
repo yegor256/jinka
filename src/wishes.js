@@ -9,11 +9,12 @@ import { Archived } from './archived.js';
 import { Permanent } from './permanent.js';
 
 export class Wishes {
-  constructor(dir, interval, archive = '', pause = 0) {
+  constructor(dir, interval, archive = '', pause = 0, notice = { warn: () => {} }) {
     this.dir = dir;
     this.interval = interval;
     this.archive = archive;
     this.pause = pause;
+    this.notice = notice;
     this.claims = new Map();
     this.startup = [];
   }
@@ -26,6 +27,10 @@ export class Wishes {
     signal.throwIfAborted();
     if (this.startup.length === 0) {
       this.startup.push(new Set(files));
+      const count = files.filter((f) => !/^[A-Z]/.test(basename(f))).length;
+      if (count > 0) {
+        this.notice.warn(`found ${count} pre-existing ${count === 1 ? 'wish' : 'wishes'} in ${this.dir} that ${count === 1 ? 'is' : 'are'} not permanent`);
+      }
     }
     const path = files.find((f) => !this.claims.has(f))
       ?? [...this.claims.keys()].find((c) => !this.claims.get(c) && files.includes(c));

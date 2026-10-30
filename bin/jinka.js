@@ -85,7 +85,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
-    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),
+    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), freeze),
     new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])),
     screen,
     crew

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertThat, equalTo, not, hasItem, empty, promiseThat, rejected } from 'hamjest';
 import { Wishes } from '../src/wishes.js';
+import { Protocol } from '../src/protocol.js';
 
 describe('Wishes', () => {
   it('finds a wish in a subdirectory', async () => {
@@ -99,6 +100,22 @@ describe('Wishes', () => {
     setTimeout(() => writeFile(join(dir, `${randomUUID()}.md`), randomUUID()), 50);
     await (await wishes.next(AbortSignal.timeout(5000))).close();
     assertThat('late wish was not deleted', await readdir(dir), empty());
+  });
+  it('warns about wishes at startup that are not permanent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, `a${randomUUID()}.md`), randomUUID());
+    await writeFile(join(dir, `b${randomUUID()}.md`), randomUUID());
+    await writeFile(join(dir, `C${randomUUID()}.md`), randomUUID());
+    const lines = [];
+    await new Wishes(dir, 10, '', 0, new Protocol(lines)).next(AbortSignal.timeout(5000));
+    assertThat('no warning about non-permanent wishes', lines, equalTo([['warn', `found 2 pre-existing wishes in ${dir} that are not permanent`]]));
+  });
+  it('dont warn when all wishes at startup are permanent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, `X${randomUUID()}.md`), randomUUID());
+    const lines = [];
+    await new Wishes(dir, 10, '', 0, new Protocol(lines)).next(AbortSignal.timeout(5000));
+    assertThat('warned about permanent wishes', lines, empty());
   });
   it('dont claim a wish when aborted during the scan', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
