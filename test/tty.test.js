@@ -163,4 +163,25 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Row([], 0)), new Status('0.2.1', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).row(1).show('b.md\tworking');
     assertThat('style was not reset after a line', chunks.at(-1).split('\n').slice(0, -1), everyItem(endsWith('\x1b[0m')));
   });
+  it('wraps a long protocol line instead of cutting it', () => {
+    const chunks = [];
+    const text = `${randomUUID()}${randomUUID()}`;
+    new Tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.2', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show(text);
+    assertThat('protocol line was cut', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(4, 10).map((l, i) => (i === 0 ? l.slice(9) : l.slice(2))).join(''), equalTo(text));
+  });
+  it('indents the continuation of a wrapped protocol line by two spaces', () => {
+    const chunks = [];
+    new Tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.3', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show('abcdefghijklmn');
+    assertThat('continuation is not indented', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  ghijklmn'));
+  });
+  it('keeps the time of a wrapped protocol line at the left edge', () => {
+    const chunks = [];
+    new Tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.4', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show('abcdefghijklmn');
+    assertThat('time is not at the left edge', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], matchesPattern(/^\d{2}:\d{2}:\d{2} abcdef$/));
+  });
+  it('drops the oldest screen lines of a wrapped protocol when they do not fit', () => {
+    const chunks = [];
+    new Tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Row([], 0)), new Status('0.2.5', Date.now(), 'claude', 'opus', new Tokens()), new Legend(new Freeze(new Crew(1, 16, new Row([], 0)), () => {}))).notice().show('abcdefghijklmnopqrstuvwxyz');
+    assertThat('newest piece of the protocol is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  tuvwxyz'));
+  });
 });

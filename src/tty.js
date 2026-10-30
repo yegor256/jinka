@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { stripVTControlCharacters } from 'node:util';
 import sliceAnsi from 'slice-ansi';
 import { Row } from './row.js';
 import { Duration } from './duration.js';
@@ -54,19 +55,24 @@ export class Tty {
     const rows = this.stream.rows || 24;
     const lines = this.crew.indexes().map((i) => [i, this.lines.get(i) ?? { head: '', tail: '', start: Date.now() }]);
     const width = Math.max(...lines.map(([, l]) => l.head.length));
+    const columns = this.stream.columns || 80;
+    const notes = this.notes.flatMap((n) => this.#wrap(n, columns));
     const top = [
       this.status.text(),
       '',
       ...lines.map(([i, l]) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
       '-'.repeat(10),
-      ...this.notes.slice(Math.max(0, this.notes.length - Math.max(0, rows - lines.length - 5)))
+      ...notes.slice(Math.max(0, notes.length - Math.max(0, rows - lines.length - 5)))
     ];
     this.stream.write(
       `\x1b[H${
         [...top, ...Array(Math.max(1, rows - top.length - 1)).fill(''), this.legend.text()]
-          .map((l) => `\x1b[2K${sliceAnsi(l, 0, this.stream.columns || 80)}\x1b[0m`)
+          .map((l) => `\x1b[2K${sliceAnsi(l, 0, columns)}\x1b[0m`)
           .join('\n')
       }\x1b[J`
     );
+  }
+  #wrap(text, width) {
+    return stripVTControlCharacters(text).length <= width || width < 3 ? [text] : [sliceAnsi(text, 0, width), ...this.#wrap(`  ${sliceAnsi(text, width)}`, width)];
   }
 }
