@@ -7,11 +7,11 @@ import { Tokens } from './tokens.js';
 import { Model } from './model.js';
 
 export class Claude {
-  constructor(agent, plugin, disk, tokens) {
+  constructor(agent, plugin, disk, meter) {
     this.agent = agent;
     this.plugin = plugin;
     this.disk = disk;
-    this.tokens = tokens;
+    this.meter = meter;
   }
   async run(wish, row, signal) {
     const prompt = [
@@ -34,7 +34,7 @@ export class Claude {
     const usage = new Tokens();
     const model = new Model();
     createInterface({ input: child.stdout }).on('line', (line) => {
-      this.tokens.add(line);
+      this.meter.add(line);
       usage.add(line);
       model.add(line);
       summary = new Event(line).summary() || summary;

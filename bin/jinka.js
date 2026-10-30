@@ -15,6 +15,8 @@ import { Disk } from '../src/disk.js';
 import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
 import { Status } from '../src/status.js';
+import { Quota } from '../src/quota.js';
+import { Meters } from '../src/meters.js';
 import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
 import { Keys } from '../src/keys.js';
@@ -57,13 +59,14 @@ const program = new Command()
 const values = program.opts();
 const dir = resolve(values.wishes);
 const tokens = new Tokens();
+const quota = new Quota();
 const crew = new Crew(values.threads, limit, { show: (text) => screen.notice().show(text) });
 const freeze = new Freeze(crew, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     crew,
-    new Status(pkg.version, Date.now(), values.agent, values.model, tokens),
+    new Status(pkg.version, Date.now(), values.agent, values.model, tokens, quota),
     new Legend(freeze)
   )
   : new Log(process.stdout);
@@ -80,7 +83,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause), freeze),
-    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), new Disk(dir, resolve(values.logs), resolve(values.memory)), tokens),
+    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), new Disk(dir, resolve(values.logs), resolve(values.memory)), new Meters([tokens, quota])),
     screen,
     crew
   ).run(controller.signal);
