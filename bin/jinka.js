@@ -5,6 +5,7 @@
 import { Command, Option, InvalidArgumentError } from 'commander';
 import { readFile } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
@@ -33,7 +34,7 @@ const program = new Command()
   .showHelpAfterError('(add --help for additional information)')
   .argument('<wishes>', 'directory with wishes, one per Markdown file')
   .option('--threads <n>', 'how many wishes run at once', positive, 8)
-  .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default('', 'none'))
+  .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default(join(homedir(), '.jinka', 'archive'), '~/.jinka/archive'))
   .option('--agent <cmd>', 'agent executable to run', 'claude')
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
