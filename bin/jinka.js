@@ -18,6 +18,7 @@ import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
 import { Keys } from '../src/keys.js';
 import { Legend } from '../src/legend.js';
+import { Tokens } from '../src/tokens.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -43,12 +44,13 @@ const program = new Command()
   .parse();
 const values = program.opts();
 const dir = resolve(program.args[0]);
+const tokens = new Tokens();
 const freeze = new Freeze(values.threads, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     values.threads,
-    new Status(pkg.version, Date.now(), values.model),
+    new Status(pkg.version, Date.now(), values.model, tokens),
     new Legend(freeze)
   )
   : new Log(process.stdout);
@@ -67,7 +69,7 @@ if (process.stdin.isTTY) {
 try {
   await new Jinka(
     new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive)), freeze),
-    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs)),
+    new Claude(new Agent(values.agent, values.model), join(root, 'plugin'), dir, resolve(values.logs), tokens),
     screen,
     values.threads
   ).run(controller.signal);

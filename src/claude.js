@@ -11,16 +11,18 @@ import { Event } from './event.js';
  * The coding agent that makes one wish come true.
  * It starts the agent with the plugin and the directory of wishes,
  * writes the prompt to its standard input, and reports every event
- * of its stream-json output to a screen row. The raw output and
+ * of its stream-json output to a screen row and to the counter of
+ * tokens. The raw output and
  * error output of every run are saved into the logs directory,
  * in a file named after the wish and the start time.
  */
 export class Claude {
-  constructor(agent, plugin, dir, logs) {
+  constructor(agent, plugin, dir, logs, tokens) {
     this.agent = agent;
     this.plugin = plugin;
     this.dir = dir;
     this.logs = logs;
+    this.tokens = tokens;
   }
   async run(wish, row, signal) {
     const prompt = [
@@ -43,6 +45,7 @@ export class Claude {
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log, { end: false });
     createInterface({ input: child.stdout }).on('line', (line) => {
+      this.tokens.add(line);
       const text = new Event(line).text();
       if (text !== '') {
         row.show(text);
