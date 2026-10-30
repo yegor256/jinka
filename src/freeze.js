@@ -11,12 +11,12 @@ export class Freeze {
   }
   on() {
     this.state.frozen = true;
-    this.notice.show('finishing, now we wait for all jobs to finish and then quit');
+    this.notice.warn('finishing, now we wait for all jobs to finish and then quit');
     this.#check();
   }
   off() {
     this.state.frozen = false;
-    this.notice.show('continuing, new jobs will start again');
+    this.notice.warn('continuing, new jobs will start again');
     this.waiters.splice(0).forEach((w) => w());
   }
   active() {

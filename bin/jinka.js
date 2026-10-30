@@ -61,8 +61,8 @@ const values = program.opts();
 const dir = resolve(values.wishes);
 const tokens = new Tokens();
 const quota = new Quota();
-const crew = new Crew(values.threads, limit, { show: (text) => screen.notice().show(text) });
-const freeze = new Freeze(crew, { show: (text) => screen.notice().show(text) }, () => process.exit(0));
+const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
+const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,

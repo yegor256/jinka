@@ -3,6 +3,7 @@
 
 import { stripVTControlCharacters } from 'node:util';
 import { Row } from './row.js';
+import { Protocol } from './protocol.js';
 
 export class Log {
   constructor(stream) {
@@ -12,7 +13,7 @@ export class Log {
     return new Row({ push: ([i, text]) => this.stream.write(`[${i + 1}] ${stripVTControlCharacters(text).replace('\t', '  ')}\n`) }, index);
   }
   notice() {
-    return new Row({ push: ([, text]) => this.stream.write(`${new Date().toTimeString().slice(0, 8)} ${text}\n`) }, 0);
+    return new Protocol({ push: ([, text]) => this.stream.write(`${new Date().toTimeString().slice(0, 8)} ${text}\n`) });
   }
   close() {}
 }

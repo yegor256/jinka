@@ -10,12 +10,13 @@ import { Crew } from '../src/crew.js';
 import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
 import { Row } from '../src/row.js';
+import { Protocol } from '../src/protocol.js';
 
 describe('Jinka', () => {
   it('makes every late wish come true', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     setTimeout(() => Promise.all([1, 2, 3].map((i) => writeFile(join(dir, `${i}.md`), randomUUID()))), 50);
-    await new Jinka(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, { row: (i) => new Row([], i), notice: () => new Row([], 0) }, new Crew(2, 16, new Row([], 0))).run(AbortSignal.timeout(300));
+    await new Jinka(new Wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, { row: (i) => new Row([], i), notice: () => new Protocol([]) }, new Crew(2, 16, new Protocol([]))).run(AbortSignal.timeout(300));
     assertThat('some wishes were left', await readdir(dir), empty());
   });
 });

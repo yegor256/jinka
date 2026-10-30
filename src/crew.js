@@ -16,7 +16,7 @@ export class Crew {
   }
   more() {
     if (this.seats.size >= this.limit) {
-      this.notice.show(`more than ${this.limit} threads are not allowed`);
+      this.notice.warn(`more than ${this.limit} threads are not allowed`);
       return;
     }
     const index = Array.from({ length: this.limit }, (_, i) => i).find((i) => !this.seats.has(i));
@@ -26,9 +26,9 @@ export class Crew {
   less() {
     const index = this.indexes().findLast((i) => this.seats.get(i).idle);
     if (this.seats.size === 1) {
-      this.notice.show('the last thread cannot be removed');
+      this.notice.warn('the last thread cannot be removed');
     } else if (index === undefined) {
-      this.notice.show('no idle thread can be removed right now');
+      this.notice.warn('no idle thread can be removed right now');
     } else {
       this.seats.get(index).controller.abort();
       this.seats.delete(index);

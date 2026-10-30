@@ -4,6 +4,7 @@
 import { stripVTControlCharacters } from 'node:util';
 import sliceAnsi from 'slice-ansi';
 import { Row } from './row.js';
+import { Protocol } from './protocol.js';
 import { Duration } from './duration.js';
 
 export class Tty {
@@ -20,7 +21,7 @@ export class Tty {
     return new Row({ push: ([i, text]) => this.#update(i, text) }, index);
   }
   notice() {
-    return new Row({ push: ([, text]) => this.#note(text) }, 0);
+    return new Protocol({ push: ([level, text]) => this.#note(level === 'warn' ? `\x1b[38;2;255;135;0m${text}\x1b[39m` : text) });
   }
   close() {
     this.clock.splice(0).forEach((c) => {

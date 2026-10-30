@@ -26,7 +26,13 @@ describe('Log', () => {
   it('prints a notice with the time of day', () => {
     const chunks = [];
     const text = randomUUID();
-    new Log({ write: (c) => chunks.push(c) }).notice().show(text);
+    new Log({ write: (c) => chunks.push(c) }).notice().info(text);
     assertThat('notice was not printed', chunks.join(''), matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} ${text}\\n$`)));
+  });
+  it('prints a warning without colors', () => {
+    const chunks = [];
+    const text = randomUUID();
+    new Log({ write: (c) => chunks.push(c) }).notice().warn(text);
+    assertThat('warning was not printed plainly', chunks.join(''), matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} ${text}\\n$`)));
   });
 });
