@@ -9,14 +9,16 @@ import { Duration } from './duration.js';
  * It switches to the alternate buffer and draws a fixed layout from the
  * top left corner: the status line, an empty line, one line per wand
  * with the time it has been busy with its current wish, a separator, and
- * the newest protocol lines that fit below it. The layout is redrawn on every change,
+ * the newest protocol lines that fit below it, while the legend with
+ * the keys stays on the last row, under an empty line. The layout is redrawn on every change,
  * every second, and on every resize, until the screen is closed and the
  * normal buffer comes back.
  */
 export class Tty {
-  constructor(stream, threads, status) {
+  constructor(stream, threads, status, legend) {
     this.stream = stream;
     this.status = status;
+    this.legend = legend;
     this.lines = Array.from({ length: threads }, () => ({ head: '', tail: '', start: Date.now() }));
     this.notes = [];
     this.clock = [];
@@ -59,17 +61,21 @@ export class Tty {
     this.#draw();
   }
   #draw() {
-    this.notes.splice(0, Math.max(0, this.notes.length - Math.max(0, (this.stream.rows || 24) - this.lines.length - 3)));
+    const rows = this.stream.rows || 24;
+    this.notes.splice(0, Math.max(0, this.notes.length - Math.max(0, rows - this.lines.length - 5)));
     const width = Math.max(...this.lines.map((l) => l.head.length));
+    const top = [
+      this.status.text(),
+      '',
+      ...this.lines.map((l, i) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
+      '-'.repeat(10),
+      ...this.notes
+    ];
     this.stream.write(
       `\x1b[H${
-        [
-          this.status.text(),
-          '',
-          ...this.lines.map((l, i) => `[${i + 1}] ${l.head.padEnd(width)}  ${new Duration(Date.now() - l.start).minutes()}  ${l.tail}`),
-          '-'.repeat(10),
-          ...this.notes
-        ].map((l) => `\x1b[2K${l.slice(0, this.stream.columns || 80)}`).join('\n')
+        [...top, ...Array(Math.max(1, rows - top.length - 1)).fill(''), this.legend.text()]
+          .map((l) => `\x1b[2K${l.slice(0, this.stream.columns || 80)}`)
+          .join('\n')
       }\x1b[J`
     );
   }
