@@ -61,8 +61,7 @@ Suggest a concrete fix for each defect.
 
 ## Merge
 
-Ask Rultor to merge in a comment when the repository has `.rultor.yml`.
-Otherwise, use a merge commit when the repository allows it.
+Use a merge commit when the repository allows it.
 Fall back to the merge method the repository allows otherwise.
 Keep the head branch, since its author owns it.
 Leave an approving review instead when this account cannot merge.
