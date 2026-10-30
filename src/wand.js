@@ -3,13 +3,6 @@
 
 import { Duration } from './duration.js';
 
-/**
- * One loop that keeps making wishes come true until the signal aborts.
- * It takes the next free wish, shows it on its own screen row, runs the
- * agent on it, and closes the wish when the agent succeeds or frees it
- * for a later retry when the agent fails. Either way, it reports the
- * outcome and the time it took to the protocol of the screen.
- */
 export class Wand {
   constructor(wishes, agent, row, protocol) {
     this.wishes = wishes;

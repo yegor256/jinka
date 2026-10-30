@@ -4,17 +4,6 @@
 import { Row } from './row.js';
 import { Duration } from './duration.js';
 
-/**
- * The screen for terminals, which takes over the whole terminal like top.
- * It switches to the alternate buffer and draws a fixed layout from the
- * top left corner: the status line, an empty line, one line per wand
- * of the crew with the time it has been busy with its current wish,
- * a separator, and the newest protocol lines and notices that fit below it, while the legend with
- * the keys stays on the last row, under an empty line. The layout is redrawn on every change,
- * every second, and on every resize, until the screen is closed and the
- * normal buffer comes back, where the whole protocol is printed line by
- * line, so it stays in the console after jinka quits.
- */
 export class Tty {
   constructor(stream, crew, status, legend) {
     this.stream = stream;

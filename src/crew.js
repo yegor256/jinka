@@ -1,14 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-/**
- * The wands that run at once, shared by everyone who needs their number.
- * Every wand sits on its own seat with an index, which is also its
- * screen row, and counts as idle while it waits for the next wish.
- * The crew may grow up to its limit while it runs, taking the first
- * free index, and may shrink by retiring one idle wand, but never down
- * to zero. When it cannot do either, it tells why in the notice.
- */
 export class Crew {
   constructor(size, limit, notice) {
     this.limit = limit;
