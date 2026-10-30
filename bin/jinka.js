@@ -43,7 +43,7 @@ const program = new Command()
   .description(pkg.description)
   .version(pkg.version)
   .showHelpAfterError('(add --help for additional information)')
-  .argument('<wishes>', 'directory with wishes, one per Markdown file')
+  .addOption(new Option('--wishes <dir>', 'directory with wishes, one per Markdown file').default(join(homedir(), '.jinka', 'wishes'), '~/.jinka/wishes'))
   .option('--threads <n>', `how many wishes run at once, up to ${limit}, which the + and - keys change while running`, bounded, 8)
   .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default(join(homedir(), '.jinka', 'archive'), '~/.jinka/archive'))
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
@@ -53,7 +53,7 @@ const program = new Command()
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .parse();
 const values = program.opts();
-const dir = resolve(program.args[0]);
+const dir = resolve(values.wishes);
 const tokens = new Tokens();
 const crew = new Crew(values.threads, limit, { show: (text) => screen.notice().show(text) });
 const freeze = new Freeze(crew, () => process.exit(0));
