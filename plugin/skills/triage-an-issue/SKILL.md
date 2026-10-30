@@ -71,6 +71,15 @@ Leave one comment that says what should be done next.
 Point at the file and line that need the change, when known.
 Skip the comment when the issue already says all of that.
 
+## Memory
+
+Remember every visit, including a skipped issue,
+  in the memory directory given in the prompt.
+Append one line `<number>,<time>` to `<owner>/<repo>/triaged.csv` there,
+  with the time in UTC and in ISO 8601.
+Start a missing file with the header line `issue,time`.
+Never rewrite or delete lines in that file.
+
 ## Boundaries
 
 Skip building, testing, and changing the code.

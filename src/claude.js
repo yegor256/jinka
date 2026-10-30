@@ -1,20 +1,16 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { createWriteStream } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
-import { join, dirname, extname } from 'node:path';
 import { Event } from './event.js';
 import { Tokens } from './tokens.js';
 import { Model } from './model.js';
 
 export class Claude {
-  constructor(agent, plugin, dir, logs, tokens) {
+  constructor(agent, plugin, disk, tokens) {
     this.agent = agent;
     this.plugin = plugin;
-    this.dir = dir;
-    this.logs = logs;
+    this.disk = disk;
     this.tokens = tokens;
   }
   async run(wish, row, signal) {
@@ -23,17 +19,11 @@ export class Claude {
       '',
       await wish.text(),
       '',
-      `The wish is written in the file ${join(this.dir, wish.name())}, ${wish.fate()}.`,
-      `All wishes live in the directory ${this.dir}, and you may add new wishes there as Markdown files.`,
+      ...this.disk.lines(wish),
       'When you finish, end with a single plain sentence that says what you did.'
     ].join('\n');
-    const file = join(
-      this.logs,
-      `${wish.name().slice(0, wish.name().length - extname(wish.name()).length)}-${new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)}.jsonl`
-    );
-    await mkdir(dirname(file), { recursive: true });
-    const log = createWriteStream(file);
-    const child = this.agent.start(['--plugin-dir', this.plugin, '--add-dir', this.dir], signal);
+    const log = await this.disk.log(wish);
+    const child = this.agent.start(['--plugin-dir', this.plugin, ...this.disk.args()], signal);
     child.stdin.on('error', () => {});
     child.stdin.end(prompt);
     child.stdout.pipe(log, { end: false });
