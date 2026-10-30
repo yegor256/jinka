@@ -36,7 +36,7 @@ if (!Number.isInteger(threads) || threads < 1 || !Number.isInteger(interval) || 
 const dir = resolve(positionals[0]);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const screen = process.stdout.isTTY
-  ? new Tty(process.stdout, threads, new Status(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version, Date.now()))
+  ? new Tty(process.stdout, threads, new Status(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version, Date.now(), values.model))
   : new Log(process.stdout);
 process.on('exit', () => screen.close());
 const controller = new AbortController();
