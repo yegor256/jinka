@@ -114,4 +114,16 @@ describe('Event', () => {
   it('shows a line that is not json as it is', () => {
     assertThat('plain line was lost', new Event('  plain words  ').text(), equalTo('plain words'));
   });
+  it('summarizes the final result by its first line', () => {
+    const text = `Fixed the parser ${Math.random()}`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: `\n${text}\nDetails` });
+    assertThat('result was not summarized', new Event(line).summary(), equalTo(text));
+  });
+  it('summarizes nothing for an assistant message', () => {
+    const line = JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Reading ü' }] } });
+    assertThat('assistant message was summarized', new Event(line).summary(), equalTo(''));
+  });
+  it('summarizes nothing for a broken line', () => {
+    assertThat('broken line was summarized', new Event('{ not json ж').summary(), equalTo(''));
+  });
 });

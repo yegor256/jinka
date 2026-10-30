@@ -23,6 +23,7 @@ export class Script {
         "  const say = (t) => console.log(JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: t }] } }));",
         "  input.split('\\n').filter((l) => l !== '').forEach(say);",
         "  say(process.argv.slice(2).join(' '));",
+        `  console.log(JSON.stringify({ type: 'result', result: 'Finished with code ${this.code}' }));`,
         `  console.error('Exiting with code ${this.code}');`,
         `  setTimeout(() => process.exit(${this.code}), ${this.delay});`,
         '});'

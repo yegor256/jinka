@@ -12,6 +12,14 @@ export class Event {
       return this.line.trim();
     }
   }
+  summary() {
+    try {
+      const json = JSON.parse(this.line);
+      return json.type === 'result' ? this.#first(String(json.result ?? '')) : '';
+    } catch {
+      return '';
+    }
+  }
   #phrase(json) {
     if (json.type === 'assistant') {
       return (json.message?.content ?? []).map((part) => this.#part(part)).filter((p) => p !== '').join(' ');

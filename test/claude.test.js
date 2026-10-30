@@ -20,9 +20,26 @@ describe('Claude', () => {
     await writeFile(join(dir, 'a.md'), randomUUID());
     assertThat(
       'exit code was lost',
-      await new Claude(new Agent(await new Script(code).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'a.md', new Map()), new Row([], 0), AbortSignal.timeout(5000)),
+      (await new Claude(new Agent(await new Script(code).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'a.md', new Map()), new Row([], 0), AbortSignal.timeout(5000))).code,
       equalTo(code)
     );
+  });
+  it('returns the first line of the final result of the agent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const code = 1 + Math.floor(Math.random() * 100);
+    await writeFile(join(dir, 'n.md'), randomUUID());
+    assertThat(
+      'summary was lost',
+      (await new Claude(new Agent(await new Script(code).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'n.md', new Map()), new Row([], 0), AbortSignal.timeout(5000))).summary,
+      equalTo(`Finished with code ${code}`)
+    );
+  });
+  it('asks the agent to finish with one sentence about what it did', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const lines = [];
+    await writeFile(join(dir, 'o.md'), randomUUID());
+    await new Claude(new Agent(await new Script(0).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'o.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('agent was not asked for a summary', lines.map((l) => l[1]).join('\n'), containsString('single plain sentence'));
   });
   it('sends the wish text to the agent', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
@@ -92,7 +109,7 @@ describe('Claude', () => {
     await writeFile(join(dir, 'e.md'), randomUUID());
     assertThat(
       'agent was not stopped',
-      await new Claude(new Agent(await new Script(0, 10000).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'e.md', new Map()), new Row([], 0), AbortSignal.timeout(300)),
+      (await new Claude(new Agent(await new Script(0, 10000).path(), ''), '/plugin', dir, await mkdtemp(join(tmpdir(), 'jinka-')), { add: () => {} }).run(new Wish(dir, 'e.md', new Map()), new Row([], 0), AbortSignal.timeout(300))).code,
       not(equalTo(0))
     );
   });
