@@ -26,6 +26,9 @@ Skip an issue too vague to reproduce,
 Check all CI jobs in the master branch, they all must be green.
 If any of them is not green, don't continue, don't fix the bug, stop.
 
+Now, when you are ready to fix the bug, assign the issue to yourself.
+If GitHub doesn't give you permissions to do so, stop here and quit.
+
 Read the title, the body, and every comment.
 Clone or pull the default branch.
 Find the code that the issue talks about.
