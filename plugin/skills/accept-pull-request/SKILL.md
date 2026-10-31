@@ -20,7 +20,7 @@ Ignore an approval that a later request for changes overrides.
 Skip reviewing the code, since the approving review already did that.
 Leave the pull request untouched when no approving review exists.
 
-Skip the pull reqest if any of its CI checks are still running.
+Skip the pull request if any of its CI checks are still running.
 Skip the pull request untouched when any check failed or got cancelled.
 
 Ask the author to rebase when the branch conflicts with the base branch.
