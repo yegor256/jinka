@@ -19,6 +19,7 @@ import { Quota } from '../src/quota.js';
 import { Meters } from '../src/meters.js';
 import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
+import { Limited } from '../src/limited.js';
 import { Keys } from '../src/keys.js';
 import { Wheel } from '../src/wheel.js';
 import { Legend } from '../src/legend.js';
@@ -57,6 +58,7 @@ const program = new Command()
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 60000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
+  .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
 const dir = resolve(values.wishes);
@@ -85,7 +87,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
-    new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), freeze),
+    new Limited(new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
     new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])),
     screen,
     crew
