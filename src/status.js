@@ -20,7 +20,7 @@ export class Status {
       `agent ${styleText('bgGray', this.agent, { validateStream: false })}`,
       `model ${styleText('bgGray', this.model === '' ? 'default' : this.model, { validateStream: false })}`,
       `tokens ${styleText('bgGray', this.tokens.text(), { validateStream: false })}`,
-      `5h-quota [${styleText('bgGray', this.quota.text(), { validateStream: false })}]`
+      `5h-quota ${styleText('bgGray', this.quota.text(), { validateStream: false })}`
     ].join(', ');
   }
 }

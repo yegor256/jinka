@@ -52,11 +52,11 @@ describe('Status', () => {
   it('shows the five-hour quota that is left', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.27 } } } }));
-    assertThat('quota is not shown', stripVTControlCharacters(new Status('0.0.9', Date.now(), 'claude', 'opus', new Tokens(), quota).text()), endsWith(', 5h-quota [73%]'));
+    assertThat('quota is not shown', stripVTControlCharacters(new Status('0.0.9', Date.now(), 'claude', 'opus', new Tokens(), quota).text()), endsWith(', 5h-quota 73%'));
   });
   it('paints the quota on a dark gray background', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.61 } } } }));
-    assertThat('quota is not painted dark gray', new Status('0.1.0', Date.now(), 'claude', 'opus', new Tokens(), quota).text(), endsWith(', 5h-quota [\x1b[100m39%\x1b[49m]'));
+    assertThat('quota is not painted dark gray', new Status('0.1.0', Date.now(), 'claude', 'opus', new Tokens(), quota).text(), endsWith(', 5h-quota \x1b[100m39%\x1b[49m'));
   });
 });
