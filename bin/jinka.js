@@ -26,6 +26,7 @@ import { Wheel } from '../src/wheel.js';
 import { Legend } from '../src/legend.js';
 import { Tokens } from '../src/tokens.js';
 import { Crew } from '../src/crew.js';
+import { Jobs } from '../src/jobs.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -74,12 +75,13 @@ const dir = resolve(values.wishes);
 const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
+const jobs = new Jobs(new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     crew,
-    new Status(pkg.version, Date.now(), values.agent, values.model, tokens, quota),
+    new Status(pkg.version, Date.now(), jobs, values.agent, values.model, tokens, quota),
     new Legend(freeze)
   )
   : new Log(process.stdout);
@@ -97,7 +99,7 @@ new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
     new Limited(new Frozen(new Throttled(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), quota, values.throttle, values.interval, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
-    new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])),
+    jobs,
     screen,
     crew
   ).run(controller.signal);
