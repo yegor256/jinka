@@ -31,6 +31,7 @@ Use a merge commit when the repository allows it.
 Fall back to the merge method the repository allows otherwise.
 Keep the head branch, since its author owns it.
 
+Post your decision to the issue, explain why you decided to merge.
 Write like a human maintainer, short and specific.
 Open with substance, never with praise or boilerplate.
 Keep prose free of emoji and of `Generated with` footers.
