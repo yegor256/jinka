@@ -20,6 +20,7 @@ import { Meters } from '../src/meters.js';
 import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
 import { Limited } from '../src/limited.js';
+import { Throttled } from '../src/throttled.js';
 import { Keys } from '../src/keys.js';
 import { Wheel } from '../src/wheel.js';
 import { Legend } from '../src/legend.js';
@@ -32,6 +33,13 @@ const positive = (text) => {
   const number = Number(text);
   if (!Number.isInteger(number) || number < 1) {
     throw new InvalidArgumentError(`A positive integer is expected, but got "${text}"`);
+  }
+  return number;
+};
+const percent = (text) => {
+  const number = Number(text);
+  if (!Number.isInteger(number) || number < 0 || number > 100) {
+    throw new InvalidArgumentError(`An integer percent from 0 to 100 is expected, but got "${text}"`);
   }
   return number;
 };
@@ -58,6 +66,7 @@ const program = new Command()
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 60000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
+  .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
@@ -87,7 +96,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
-    new Limited(new Frozen(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
+    new Limited(new Frozen(new Throttled(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), quota, values.throttle, values.interval, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
     new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])),
     screen,
     crew
