@@ -98,7 +98,7 @@ new Keys(process.stdin, freeze, crew, interrupt).listen();
 new Wheel(process.stdin, screen).listen();
 try {
   await new Jinka(
-    new Limited(new Frozen(new Throttled(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), quota, values.throttle, values.interval, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
+    new Limited(new Frozen(new Throttled(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), quota, values.throttle, 15 * 60 * 1000, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
     jobs,
     screen,
     crew
