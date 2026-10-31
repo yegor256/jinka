@@ -18,6 +18,10 @@ describe('Disk', () => {
     const size = 2 + Math.floor(Math.random() * 30);
     assertThat('thread count was not mentioned', new Disk('/wishes', '/logs', '/memory', { size: () => size }).lines(new Wish('/wishes', 'c.md', new Map())).join('\n'), containsString(`Jinka runs ${size} threads right now`));
   });
+  it('asks the agent to split a wish into smaller wishes next to it', () => {
+    const deep = join(randomUUID(), 'глубоко');
+    assertThat('wish directory was not offered for smaller wishes', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', join(deep, 'x.md'), new Map())).join('\n'), containsString(`write each of them as a separate Markdown file in the directory ${join('/wishes', deep)}`));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', new Disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
