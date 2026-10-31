@@ -16,7 +16,9 @@ export class Disk {
     return [
       `The wish is written in the file ${join(this.wishes, wish.name())}, ${wish.fate()}.`,
       `All wishes live in the directory ${this.wishes}, and you may add new wishes there as Markdown files.`,
-      `If this wish is an atomic job that involves no other jobs, make it come true yourself; otherwise, do not do it yourself, but split it into smaller wishes and write each of them as a separate Markdown file in the directory ${join(this.wishes, dirname(wish.name()))}.`,
+      `If this wish is an atomic job that involves no other jobs, make it come true yourself;`,
+      `otherwise, do not do it yourself, but split it into smaller wishes`,
+      `and write each of them as a separate Markdown file in the directory ${join(this.wishes, dirname(wish.name()))}.`,
       `Your memory lives in the directory ${this.memory}, keep there what the skills tell you to keep.`,
       `Jinka runs ${this.crew.size()} threads right now, so up to ${this.crew.size()} wishes run at once.`
     ];
