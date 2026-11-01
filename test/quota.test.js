@@ -47,4 +47,16 @@ describe('Quota', () => {
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.97, resetsAt: now / 1000 - 30 }, seven_day: { utilization: 0.41, resetsAt: now / 1000 + 7000 } } } }));
     assertThat('reset window was not restored', quota.left(now), closeTo(59, 0.001));
   });
+  it('names the window with the smallest share', () => {
+    const quota = new Quota();
+    const now = Date.now();
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.31, resetsAt: now / 1000 + 800 }, seven_day: { utilization: 0.93, resetsAt: now / 1000 + 9500 } } } }));
+    assertThat('tightest window was not named', quota.name(now), equalTo('seven-day'));
+  });
+  it('skips the name of a window that was reset', () => {
+    const quota = new Quota();
+    const now = Date.now();
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.99, resetsAt: now / 1000 - 45 }, seven_day: { utilization: 0.37, resetsAt: now / 1000 + 6000 } } } }));
+    assertThat('reset window was named', quota.name(now), equalTo('seven-day'));
+  });
 });

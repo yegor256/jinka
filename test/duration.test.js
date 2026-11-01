@@ -14,4 +14,13 @@ describe('Duration', () => {
   it('prints hours, minutes and seconds', () => {
     assertThat('hours were not printed', new Duration(6_127_400).hours(), equalTo('01:42:07'));
   });
+  it('prints whole minutes in words', () => {
+    assertThat('minutes were not printed in words', new Duration(900_000).phrase(), equalTo('15 minutes'));
+  });
+  it('prints one minute in singular', () => {
+    assertThat('one minute was printed in plural', new Duration(61_300).phrase(), equalTo('1 minute'));
+  });
+  it('prints less than a minute in seconds', () => {
+    assertThat('seconds were not printed in words', new Duration(37_900).phrase(), equalTo('37 seconds'));
+  });
 });
