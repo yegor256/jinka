@@ -22,15 +22,12 @@ export class Throttled {
     if (left >= this.throttle && first) {
       return;
     }
+    const share = `${Math.round(left)}% of the ${this.quota.name(Date.now())} quota is left`;
     if (left >= this.throttle) {
-      this.notice.warn(`checked the quota again, ${Math.round(left)}% is left, which is not below ${this.throttle}%, so new jobs resume`);
+      this.notice.warn(`now ${share}, not below ${this.throttle}%, new jobs resume`);
       return;
     }
-    if (first) {
-      this.notice.warn(`only ${Math.round(left)}% of the quota is left, which is below ${this.throttle}%, so new jobs wait and the quota is checked again in ${new Duration(this.interval).minutes()}`);
-    } else {
-      this.notice.warn(`checked the quota again, only ${Math.round(left)}% is left, which is still below ${this.throttle}%, so new jobs wait and the quota is checked again in ${new Duration(this.interval).minutes()}`);
-    }
+    this.notice.warn(`${first ? '' : 'still '}only ${share}, below ${this.throttle}%, new jobs wait, next check in ${new Duration(this.interval).phrase()}`);
     await setTimeout(this.interval, undefined, { signal });
     await this.#wait(signal, false);
   }
