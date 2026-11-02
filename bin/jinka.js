@@ -4,13 +4,15 @@
 
 import { Command, Option, InvalidArgumentError } from 'commander';
 import { readFile } from 'node:fs/promises';
-import { resolve, join, dirname } from 'node:path';
+import { resolve, join, dirname, parse } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Jinka } from '../src/jinka.js';
 import { Wishes } from '../src/wishes.js';
 import { Agent } from '../src/agent.js';
 import { Claude } from '../src/claude.js';
+import { Codex } from '../src/codex.js';
+import { Genie } from '../src/genie.js';
 import { Disk } from '../src/disk.js';
 import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
@@ -63,7 +65,8 @@ const program = new Command()
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs').default(join(homedir(), '.jinka', 'memory'), '~/.jinka/memory'))
   .addOption(new Option('--skill <dir>', 'directory with the plugin of skills that the agent loads').default(join(root, 'plugin'), 'skills bundled with jinka'))
-  .option('--agent <cmd>', 'agent executable to run', 'claude')
+  .addOption(new Option('--engine <name>', 'kind of agent to run, guessed from the name of the agent executable when not given').choices(['claude', 'codex']))
+  .addOption(new Option('--agent <cmd>', 'agent executable to run').default('', 'the name of the engine'))
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 60000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
@@ -73,16 +76,18 @@ const program = new Command()
   .parse();
 const values = program.opts();
 const dir = resolve(values.wishes);
+const engine = values.engine ?? (parse(values.agent).name === 'codex' ? 'codex' : 'claude');
+const agent = values.agent === '' ? engine : values.agent;
 const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
-const jobs = new Jobs(new Claude(new Agent(values.agent, values.model, values.effort), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
+const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     crew,
-    new Status(Date.now(), jobs, values.agent, values.model, tokens, quota),
+    new Status(Date.now(), jobs, agent, values.model, tokens, quota),
     new Legend(freeze, pkg.version)
   )
   : new Log(process.stdout);

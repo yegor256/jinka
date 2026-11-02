@@ -42,4 +42,15 @@ describe('Tokens', () => {
     tokens.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { cache_read_input_tokens: 1_234_567 } } }));
     assertThat('large number was not shortened', tokens.text(), equalTo('1.2M'));
   });
+  it('sums the tokens of a turn of codex', () => {
+    const tokens = new Tokens();
+    tokens.add(JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 12_939, cached_input_tokens: 10_880, output_tokens: 61, reasoning_output_tokens: 17 } }));
+    assertThat('codex tokens were not summed', tokens.text(), equalTo('13K'));
+  });
+  it('sums the tokens of different turns of codex', () => {
+    const tokens = new Tokens();
+    tokens.add(JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 41, output_tokens: 3 } }));
+    tokens.add(JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 57, output_tokens: 8 } }));
+    assertThat('codex turns were not summed', tokens.text(), equalTo('109'));
+  });
 });

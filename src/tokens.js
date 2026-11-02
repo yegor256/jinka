@@ -15,6 +15,9 @@ export class Tokens {
             .reduce((sum, key) => sum + (json.message.usage[key] ?? 0), 0)
         );
       }
+      if (json.type === 'turn.completed' && json.usage !== undefined) {
+        this.messages.set(Symbol('turn'), (json.usage.input_tokens ?? 0) + (json.usage.output_tokens ?? 0));
+      }
     } catch {
       return;
     }

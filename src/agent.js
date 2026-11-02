@@ -4,24 +4,12 @@
 import spawn from 'cross-spawn';
 
 export class Agent {
-  constructor(command, model, effort) {
+  constructor(command) {
     this.command = command;
-    this.model = model;
-    this.effort = effort;
   }
   start(args, signal) {
     const windows = process.platform === 'win32';
-    const child = spawn(
-      this.command,
-      [
-        '-p', '--output-format', 'stream-json', '--verbose',
-        ...args,
-        '--dangerously-skip-permissions',
-        ...(this.model === '' ? [] : ['--model', this.model]),
-        ...(this.effort === '' ? [] : ['--effort', this.effort])
-      ],
-      windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' }
-    );
+    const child = spawn(this.command, args, windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' });
     if (windows) {
       signal.addEventListener(
         'abort',

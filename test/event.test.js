@@ -147,4 +147,34 @@ describe('Event', () => {
     const line = JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'see https://github.com/a/b/issues/3' }] } });
     assertThat('link was found in an assistant message', new Event(line).link(), equalTo(''));
   });
+  it('reports a message of codex by its first line', () => {
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_3', type: 'agent_message', text: '\nLooking at the tests ü\nmore' } });
+    assertThat('codex message was not reported', new Event(line).text(), equalTo('Looking at the tests ü'));
+  });
+  it('paints a shell command of codex in light gray', () => {
+    const line = JSON.stringify({ type: 'item.started', item: { id: 'item_1', type: 'command_execution', command: 'git status --short', status: 'in_progress' } });
+    assertThat('codex command was not light gray', new Event(line).text(), equalTo('\x1b[37mshell: git status --short\x1b[39m'));
+  });
+  it('stays silent when a shell command of codex completes', () => {
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_1', type: 'command_execution', command: 'ls', aggregated_output: 'a.md', status: 'completed' } });
+    assertThat('completed codex command was not ignored', new Event(line).text(), equalTo(''));
+  });
+  it('explains a file change of codex', () => {
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: '/src/ж.js', kind: 'update' }], status: 'completed' } });
+    assertThat('codex file change was not explained', new Event(line).text(), equalTo('editing /src/ж.js'));
+  });
+  it('reports a failed turn of codex', () => {
+    const line = JSON.stringify({ type: 'turn.failed', error: { message: 'Quota is over ü\nRetry later' } });
+    assertThat('codex failure was not reported', new Event(line).text(), equalTo('Quota is over ü'));
+  });
+  it('summarizes a message of codex by its first line', () => {
+    const text = `Closed the issue ${Math.random()}`;
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_9', type: 'agent_message', text: `${text}\nhttps://github.com/a/b/issues/3` } });
+    assertThat('codex message was not summarized', new Event(line).summary(), equalTo(text));
+  });
+  it('finds the link to the issue in a message of codex', () => {
+    const url = `https://github.com/q-${Math.floor(Math.random() * 1000)}/ж/issues/${Math.floor(Math.random() * 1000)}`;
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_9', type: 'agent_message', text: `Closed it\n${url}` } });
+    assertThat('link was not found in a codex message', new Event(line).link(), equalTo(url));
+  });
 });

@@ -1,56 +1,27 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { createInterface } from 'node:readline';
-import { Event } from './event.js';
-import { Tokens } from './tokens.js';
-import { Model } from './model.js';
-
 export class Claude {
-  constructor(agent, plugin, disk, meter) {
+  constructor(agent, model, effort, plugin) {
     this.agent = agent;
+    this.model = model;
+    this.effort = effort;
     this.plugin = plugin;
-    this.disk = disk;
-    this.meter = meter;
   }
-  async run(wish, row, signal) {
-    const prompt = [
-      'Make this wish come true, working on your own without asking any questions:',
-      '',
-      await wish.text(),
-      '',
-      ...this.disk.lines(wish),
-      'When you finish, end with a single plain sentence that says what you did.',
-      'On the next line, write the full URL of the GitHub issue or pull request you worked on, if there was one.'
-    ].join('\n');
-    const log = await this.disk.log(wish);
-    const child = this.agent.start(['--plugin-dir', this.plugin, ...this.disk.args()], signal);
-    child.stdin.on('error', () => {});
-    child.stdin.end(prompt);
-    child.stdout.pipe(log, { end: false });
-    child.stderr.pipe(log, { end: false });
-    let summary = '';
-    let link = '';
-    const usage = new Tokens();
-    const model = new Model();
-    createInterface({ input: child.stdout }).on('line', (line) => {
-      this.meter.add(line);
-      usage.add(line);
-      model.add(line);
-      summary = new Event(line).summary() || summary;
-      link = new Event(line).link() || link;
-      const text = new Event(line).text();
-      if (text !== '') {
-        row.show(text);
-      }
-    });
-    return new Promise((resolve, reject) => {
-      child.on('error', (e) => {
-        if (!signal.aborted) {
-          reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
-        }
-      });
-      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, link, tokens: usage.text(), model: model.text() })));
-    });
+  start(args, signal) {
+    return this.agent.start(
+      [
+        '-p', '--output-format', 'stream-json', '--verbose',
+        '--plugin-dir', this.plugin,
+        ...args,
+        '--dangerously-skip-permissions',
+        ...(this.model === '' ? [] : ['--model', this.model]),
+        ...(this.effort === '' ? [] : ['--effort', this.effort])
+      ],
+      signal
+    );
+  }
+  lines() {
+    return [];
   }
 }
