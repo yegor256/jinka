@@ -19,6 +19,7 @@ export class Disk {
       `If this wish is an atomic job that involves no other jobs, make it come true yourself;`,
       `otherwise, do not do it yourself, but split it into smaller wishes`,
       `and write each of them as a separate Markdown file in the directory ${join(this.wishes, dirname(wish.name()))}.`,
+      `Always start the name of every new wish file with a small English letter, never with a capital one.`,
       `Your memory lives in the directory ${this.memory}, keep there what the skills tell you to keep.`,
       `Jinka runs ${this.crew.size()} threads right now, so up to ${this.crew.size()} wishes run at once.`
     ];

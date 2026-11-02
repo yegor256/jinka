@@ -22,6 +22,9 @@ describe('Disk', () => {
     const deep = join(randomUUID(), 'глубоко');
     assertThat('wish directory was not offered for smaller wishes', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', join(deep, 'x.md'), new Map())).join('\n'), containsString(`write each of them as a separate Markdown file in the directory ${join('/wishes', deep)}`));
   });
+  it('asks the agent to start names of new wish files with a small letter', () => {
+    assertThat('small first letter was not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', new Disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
