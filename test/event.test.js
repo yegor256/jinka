@@ -13,12 +13,12 @@ describe('Event', () => {
     });
     assertThat('tool call was not summarized', stripVTControlCharacters(new Event(line).text()), equalTo('Bash: gh pr list --repo foo/bar'));
   });
-  it('paints a shell command without description in light gray', () => {
+  it('paints a shell command without description in cyan', () => {
     const line = JSON.stringify({
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'git log --oneline | head -7' } }] }
     });
-    assertThat('shell command was not light gray', new Event(line).text(), equalTo('\x1b[37mBash: git log --oneline | head -7\x1b[39m'));
+    assertThat('shell command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mBash: git log --oneline | head -7\x1b[39m'));
   });
   it('explains a shell command by its description', () => {
     const line = JSON.stringify({
@@ -153,7 +153,7 @@ describe('Event', () => {
   });
   it('paints a shell command of codex in light gray', () => {
     const line = JSON.stringify({ type: 'item.started', item: { id: 'item_1', type: 'command_execution', command: 'git status --short', status: 'in_progress' } });
-    assertThat('codex command was not light gray', new Event(line).text(), equalTo('\x1b[37mshell: git status --short\x1b[39m'));
+    assertThat('codex command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mshell: git status --short\x1b[39m'));
   });
   it('stays silent when a shell command of codex completes', () => {
     const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_1', type: 'command_execution', command: 'ls', aggregated_output: 'a.md', status: 'completed' } });

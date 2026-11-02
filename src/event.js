@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { styleText } from 'node:util';
-
 export class Event {
   constructor(line) {
     this.line = line;
@@ -39,7 +37,7 @@ export class Event {
       return this.#first(String(json.item.text ?? ''));
     }
     if (json.type === 'item.started' && json.item?.type === 'command_execution') {
-      return styleText('white', `shell: ${this.#first(String(json.item.command ?? ''))}`, { validateStream: false });
+      return `\x1b[38;2;0;204;204mshell: ${this.#first(String(json.item.command ?? ''))}\x1b[39m`;
     }
     if (json.type === 'item.completed' && json.item?.type === 'file_change') {
       return `editing ${(json.item.changes ?? []).map((c) => c.path).join(', ')}`;
@@ -68,14 +66,12 @@ export class Event {
       if (phrase !== undefined) {
         return this.#first(phrase);
       }
-      return styleText(
-        'white',
+      return `\x1b[38;2;0;204;204m${
         [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
           .filter((p) => p !== undefined)
           .map((p) => this.#first(String(p)))
-          .join(': '),
-        { validateStream: false }
-      );
+          .join(': ')
+      }\x1b[39m`;
     }
     return '';
   }
