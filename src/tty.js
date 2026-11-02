@@ -86,11 +86,15 @@ export class Tty {
     ];
     this.stream.write(
       `\x1b[H${
-        [...top, ...Array(Math.max(1, rows - top.length - 1)).fill(''), this.legend.text()]
+        [...top, ...Array(Math.max(1, rows - top.length - 1)).fill(''), this.#edge(this.legend.text(), columns)]
           .map((l) => `\x1b[2K${sliceAnsi(l, 0, columns)}\x1b[0m`)
           .join('\n')
       }\x1b[J`
     );
+  }
+  #edge(text, width) {
+    const [left, right] = text.split('\t');
+    return `${left}${' '.repeat(Math.max(1, width - stripVTControlCharacters(left).length - stripVTControlCharacters(right).length))}${right}`;
   }
   #wrap(text, width) {
     return stripVTControlCharacters(text).length <= width || width < 3 ? [text] : [sliceAnsi(text, 0, width), ...this.#wrap(`  ${sliceAnsi(text, width)}`, width)];

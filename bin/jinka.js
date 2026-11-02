@@ -81,8 +81,8 @@ const screen = process.stdout.isTTY
   ? new Tty(
     process.stdout,
     crew,
-    new Status(pkg.version, Date.now(), jobs, values.agent, values.model, tokens, quota),
-    new Legend(freeze)
+    new Status(Date.now(), jobs, values.agent, values.model, tokens, quota),
+    new Legend(freeze, pkg.version)
   )
   : new Log(process.stdout);
 process.on('exit', () => screen.close());
