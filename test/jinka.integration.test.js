@@ -114,6 +114,52 @@ describe('jinka command', () => {
       containsString(JSON.stringify(`--plugin-dir ${skill}`).slice(1, -1))
     );
   });
+  it('guesses the codex engine from the name of the agent', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const logs = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(0, 0, [], 'codex').path(), '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      { stdio: ['pipe', 'ignore', 'ignore'] }
+    );
+    await setTimeout(500);
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const deadline = Date.now() + 8000;
+    while ((await readdir(archive)).length < 1 && Date.now() < deadline) {
+      await setTimeout(50);
+    }
+    jinka.stdin.write('\x03');
+    await once(jinka, 'exit');
+    assertThat(
+      'the codex engine was not guessed from the agent name',
+      (await Promise.all((await readdir(logs)).map((f) => readFile(join(logs, f), 'utf8')))).join(''),
+      containsString('exec --json')
+    );
+  });
+  it('runs the codex engine when it is asked to', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const logs = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--engine', 'codex', '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      { stdio: ['pipe', 'ignore', 'ignore'] }
+    );
+    await setTimeout(500);
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const deadline = Date.now() + 8000;
+    while ((await readdir(archive)).length < 1 && Date.now() < deadline) {
+      await setTimeout(50);
+    }
+    jinka.stdin.write('\x03');
+    await once(jinka, 'exit');
+    assertThat(
+      'the codex engine did not run',
+      (await Promise.all((await readdir(logs)).map((f) => readFile(join(logs, f), 'utf8')))).join(''),
+      containsString('exec --json')
+    );
+  });
   it('prints help with option descriptions', () => {
     assertThat(
       'help did not describe the threads option',

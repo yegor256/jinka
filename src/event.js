@@ -16,16 +16,14 @@ export class Event {
   }
   summary() {
     try {
-      const json = JSON.parse(this.line);
-      return json.type === 'result' ? this.#first(String(json.result ?? '')) : '';
+      return this.#first(this.#final(JSON.parse(this.line)));
     } catch {
       return '';
     }
   }
   link() {
     try {
-      const json = JSON.parse(this.line);
-      return json.type === 'result' ? (String(json.result ?? '').match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0] : '';
+      return (this.#final(JSON.parse(this.line)).match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0];
     } catch {
       return '';
     }
@@ -36,6 +34,27 @@ export class Event {
     }
     if (json.type === 'result') {
       return this.#first(String(json.result ?? json.subtype ?? ''));
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
+      return this.#first(String(json.item.text ?? ''));
+    }
+    if (json.type === 'item.started' && json.item?.type === 'command_execution') {
+      return styleText('white', `shell: ${this.#first(String(json.item.command ?? ''))}`, { validateStream: false });
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'file_change') {
+      return `editing ${(json.item.changes ?? []).map((c) => c.path).join(', ')}`;
+    }
+    if (json.type === 'turn.failed') {
+      return this.#first(String(json.error?.message ?? ''));
+    }
+    return '';
+  }
+  #final(json) {
+    if (json.type === 'result') {
+      return String(json.result ?? '');
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
+      return String(json.item.text ?? '');
     }
     return '';
   }

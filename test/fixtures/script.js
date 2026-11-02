@@ -6,14 +6,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export class Script {
-  constructor(code, delay = 0, lines = []) {
+  constructor(code, delay = 0, lines = [], name = 'agent') {
     this.code = code;
     this.delay = delay;
     this.lines = lines;
+    this.name = name;
   }
   async path() {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
-    const file = join(dir, 'agent.js');
+    const file = join(dir, `${this.name}.js`);
     await writeFile(
       file,
       [
@@ -35,8 +36,8 @@ export class Script {
     if (process.platform !== 'win32') {
       return file;
     }
-    const cmd = join(dir, 'agent.cmd');
-    await writeFile(cmd, `@"${process.execPath}" "%~dp0agent.js" %*\r\n`);
+    const cmd = join(dir, `${this.name}.cmd`);
+    await writeFile(cmd, `@"${process.execPath}" "%~dp0${this.name}.js" %*\r\n`);
     return cmd;
   }
 }
