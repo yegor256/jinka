@@ -26,7 +26,12 @@ describe('Tty', () => {
     const chunks = [];
     const version = randomUUID();
     new Tty({ columns: 121, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), version)).row(0).show('a.md\tworking');
-    assertThat('version is not at the right end of the legend line', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), equalTo(`keys: F - to finish and quit, +/- to add threads${' '.repeat(31)}jinka ${version}`));
+    assertThat('version is not at the right end of the legend line', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), equalTo(`keys: F - to finish and quit, +/- to add threads${' '.repeat(36)}${version}`));
+  });
+  it('leaves the last column of the legend line empty', () => {
+    const chunks = [];
+    new Tty({ columns: 94, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), '7.3.9')).row(0).show('d.md\tworking');
+    assertThat('version touches the last column, where the erase wipes it', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1).length, equalTo(93));
   });
   it('leaves an empty line under the status line', () => {
     const chunks = [];

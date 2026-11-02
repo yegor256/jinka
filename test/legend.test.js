@@ -26,12 +26,8 @@ describe('Legend', () => {
     freeze.on();
     assertThat('continue key is not painted dark gray', new Legend(freeze, '3.1.5').text().split('\t')[0], equalTo('keys: \x1b[100mC\x1b[49m - to continue'));
   });
-  it('shows the version after a tab', () => {
+  it('shows the plain version after a tab', () => {
     const version = randomUUID();
-    assertThat('version is not shown after a tab', stripVTControlCharacters(new Legend(new Freeze(new Crew(2, 16, new Protocol([])), new Protocol([]), () => {}), version).text()), endsWith(`\tjinka ${version}`));
-  });
-  it('paints the version on a dark gray background', () => {
-    const version = randomUUID();
-    assertThat('version is not painted dark gray', new Legend(new Freeze(new Crew(5, 16, new Protocol([])), new Protocol([]), () => {}), version).text(), endsWith(`\tjinka \x1b[100m${version}\x1b[49m`));
+    assertThat('plain version is not shown after a tab', new Legend(new Freeze(new Crew(2, 16, new Protocol([])), new Protocol([]), () => {}), version).text(), endsWith(`s\t${version}`));
   });
 });
