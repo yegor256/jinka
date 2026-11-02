@@ -13,12 +13,12 @@ describe('Event', () => {
     });
     assertThat('tool call was not summarized', stripVTControlCharacters(new Event(line).text()), equalTo('Bash: gh pr list --repo foo/bar'));
   });
-  it('paints a shell command without description in gray', () => {
+  it('paints a shell command without description in light gray', () => {
     const line = JSON.stringify({
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'git log --oneline | head -7' } }] }
     });
-    assertThat('shell command was not gray', new Event(line).text(), equalTo('\x1b[90mBash: git log --oneline | head -7\x1b[39m'));
+    assertThat('shell command was not light gray', new Event(line).text(), equalTo('\x1b[37mBash: git log --oneline | head -7\x1b[39m'));
   });
   it('explains a shell command by its description', () => {
     const line = JSON.stringify({

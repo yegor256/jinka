@@ -50,7 +50,7 @@ export class Event {
         return this.#first(phrase);
       }
       return styleText(
-        'gray',
+        'white',
         [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
           .filter((p) => p !== undefined)
           .map((p) => this.#first(String(p)))
