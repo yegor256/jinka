@@ -6,6 +6,7 @@ import sliceAnsi from 'slice-ansi';
 import { Row } from './row.js';
 import { Protocol } from './protocol.js';
 import { Duration } from './duration.js';
+import { Logo } from './logo.js';
 
 export class Tty {
   constructor(stream, crew, status, legend) {
@@ -75,9 +76,10 @@ export class Tty {
     const notes = this.notes.flatMap((n) => this.#wrap(n, columns));
     const height = Math.max(0, rows - lines.length - 5);
     this.view.depth = Math.min(this.view.depth, Math.max(0, notes.length - height));
+    const [upper, lower] = new Logo().lines();
     const top = [
-      this.status.text(),
-      '',
+      this.#corner(this.status.text(), upper, columns),
+      this.#corner('', lower, columns),
       ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${styleText(['', 'idle'].includes(stripVTControlCharacters(l.head)) ? 'gray' : 'green', new Duration(Date.now() - l.start).minutes(), { validateStream: false })}  ${l.tail}`),
       '-'.repeat(10),
       ...notes.slice(Math.max(0, notes.length - height - this.view.depth), notes.length - this.view.depth)
@@ -89,6 +91,10 @@ export class Tty {
           .join('\n')
       }\x1b[J`
     );
+  }
+  #corner(text, art, width) {
+    const room = Math.max(0, width - stripVTControlCharacters(art).length);
+    return `${sliceAnsi(text, 0, room)}${' '.repeat(Math.max(0, room - stripVTControlCharacters(text).length))}\x1b[0m${art}`;
   }
   #wrap(text, width) {
     return stripVTControlCharacters(text).length <= width || width < 3 ? [text] : [sliceAnsi(text, 0, width), ...this.#wrap(`  ${sliceAnsi(text, width)}`, width)];
