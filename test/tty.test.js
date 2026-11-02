@@ -33,15 +33,15 @@ describe('Tty', () => {
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.1.3', Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show('a.md\tworking');
     assertThat('line under the status line is not empty', stripVTControlCharacters(chunks.join('')).split('\n')[1].replace('▞▀▀▛▀▀▀▛▀▀▀▀', '').trim(), equalTo(''));
   });
-  it('draws the top of the pike in the top right corner', () => {
+  it('draws the top of the pike in the top left corner', () => {
     const chunks = [];
     new Tty({ columns: 97, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.4.1', Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show('b.md\tworking');
-    assertThat('top of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[0], endsWith('▚▄▄▙▄▄▄▄▗▄▖ '));
+    assertThat('top of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[0], startsWith('▚▄▄▙▄▄▄▄▗▄▖  jinka 0.4.1, '));
   });
-  it('draws the bottom of the pike in the top right corner', () => {
+  it('draws the bottom of the pike in the top left corner', () => {
     const chunks = [];
     new Tty({ columns: 113, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status('0.7.2', Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}))).row(0).show('c.md\tworking');
-    assertThat('bottom of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[1], equalTo(`${' '.repeat(101)}▞▀▀▛▀▀▀▛▀▀▀▀`));
+    assertThat('bottom of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[1], equalTo('▞▀▀▛▀▀▀▛▀▀▀▀'));
   });
   it('shows the text of a row', () => {
     const chunks = [];
