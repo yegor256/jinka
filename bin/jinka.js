@@ -67,6 +67,7 @@ const program = new Command()
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
   .option('--pause <ms>', 'how long a capitalized wish that was there at startup waits after a success before it runs again', positive, 60000)
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
+  .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
@@ -75,7 +76,7 @@ const dir = resolve(values.wishes);
 const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
-const jobs = new Jobs(new Claude(new Agent(values.agent, values.model), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
+const jobs = new Jobs(new Claude(new Agent(values.agent, values.model, values.effort), resolve(values.skill), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(

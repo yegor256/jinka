@@ -10,24 +10,35 @@ import { Script } from './fixtures/script.js';
 describe('Agent', () => {
   it('passes the arguments to the executable', async () => {
     const arg = randomUUID();
-    const child = new Agent(await new Script(0).path(), '').start([arg], AbortSignal.timeout(5000));
+    const child = new Agent(await new Script(0).path(), '', '').start([arg], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('argument did not reach the agent', await text(child.stdout), containsString(arg));
   });
   it('starts the executable in headless mode', async () => {
-    const child = new Agent(await new Script(0).path(), '').start([], AbortSignal.timeout(5000));
+    const child = new Agent(await new Script(0).path(), '', '').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('agent was not headless', await text(child.stdout), containsString('-p --output-format stream-json'));
   });
   it('passes the model verbatim', async () => {
     const model = `claude-${randomUUID()}`;
-    const child = new Agent(await new Script(0).path(), model).start([], AbortSignal.timeout(5000));
+    const child = new Agent(await new Script(0).path(), model, '').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('model did not reach the agent', await text(child.stdout), containsString(`--model ${model}`));
   });
   it('omits the model when none is given', async () => {
-    const child = new Agent(await new Script(0).path(), '').start([], AbortSignal.timeout(5000));
+    const child = new Agent(await new Script(0).path(), '', '').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('model was passed without being given', await text(child.stdout), not(containsString('--model')));
+  });
+  it('passes the effort verbatim', async () => {
+    const effort = randomUUID();
+    const child = new Agent(await new Script(0).path(), '', effort).start([], AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat('effort did not reach the agent', await text(child.stdout), containsString(`--effort ${effort}`));
+  });
+  it('omits the effort when none is given', async () => {
+    const child = new Agent(await new Script(0).path(), '', '').start([], AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat('effort was passed without being given', await text(child.stdout), not(containsString('--effort')));
   });
 });
