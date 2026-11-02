@@ -9,7 +9,7 @@ export class Legend {
     this.version = version;
   }
   text() {
-    return `${this.#keys()}\tjinka ${styleText('bgGray', this.version, { validateStream: false })}`;
+    return `${this.#keys()}\t${this.version}`;
   }
   #keys() {
     return this.freeze.active()

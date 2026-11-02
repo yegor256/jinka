@@ -94,7 +94,7 @@ export class Tty {
   }
   #edge(text, width) {
     const [left, right] = text.split('\t');
-    return `${left}${' '.repeat(Math.max(1, width - stripVTControlCharacters(left).length - stripVTControlCharacters(right).length))}${right}`;
+    return `${left}${' '.repeat(Math.max(1, width - 1 - stripVTControlCharacters(left).length - stripVTControlCharacters(right).length))}${right}`;
   }
   #wrap(text, width) {
     return stripVTControlCharacters(text).length <= width || width < 3 ? [text] : [sliceAnsi(text, 0, width), ...this.#wrap(`  ${sliceAnsi(text, width)}`, width)];
