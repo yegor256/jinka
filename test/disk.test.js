@@ -25,6 +25,9 @@ describe('Disk', () => {
   it('asks the agent to start names of new wish files with a small letter', () => {
     assertThat('small first letter was not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
   });
+  it('asks the agent to work in git worktrees', () => {
+    assertThat('git worktrees were not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('do all your work inside a separate Git worktree'));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', new Disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
