@@ -6,19 +6,26 @@ import { assertThat, equalTo } from 'hamjest';
 import { Event } from '../src/event.js';
 
 describe('Event', () => {
-  it('turns a shell command without description into a short phrase', () => {
+  it('names the program of a shell command without description', () => {
     const line = JSON.stringify({
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'gh pr list --repo foo/bar' } }] }
     });
-    assertThat('tool call was not summarized', stripVTControlCharacters(new Event(line).text()), equalTo('Bash: gh pr list --repo foo/bar'));
+    assertThat('program was not named', stripVTControlCharacters(new Event(line).text()), equalTo('gh'));
   });
   it('paints a shell command without description in cyan', () => {
     const line = JSON.stringify({
       type: 'assistant',
       message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'git log --oneline | head -7' } }] }
     });
-    assertThat('shell command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mBash: git log --oneline | head -7\x1b[39m'));
+    assertThat('shell command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mgit\x1b[39m'));
+  });
+  it('names the program of a shell command without its directory', () => {
+    const line = JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: '  /usr/local/bin/rg -n "ü" src' } }] }
+    });
+    assertThat('directory was not dropped', stripVTControlCharacters(new Event(line).text()), equalTo('rg'));
   });
   it('explains a shell command by its description', () => {
     const line = JSON.stringify({
@@ -151,9 +158,9 @@ describe('Event', () => {
     const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_3', type: 'agent_message', text: '\nLooking at the tests ü\nmore' } });
     assertThat('codex message was not reported', new Event(line).text(), equalTo('Looking at the tests ü'));
   });
-  it('paints a shell command of codex in light gray', () => {
+  it('paints the program of a codex shell command in cyan', () => {
     const line = JSON.stringify({ type: 'item.started', item: { id: 'item_1', type: 'command_execution', command: 'git status --short', status: 'in_progress' } });
-    assertThat('codex command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mshell: git status --short\x1b[39m'));
+    assertThat('codex command was not cyan', new Event(line).text(), equalTo('\x1b[38;2;0;204;204mgit\x1b[39m'));
   });
   it('stays silent when a shell command of codex completes', () => {
     const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_1', type: 'command_execution', command: 'ls', aggregated_output: 'a.md', status: 'completed' } });

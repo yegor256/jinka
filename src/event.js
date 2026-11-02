@@ -37,7 +37,7 @@ export class Event {
       return this.#first(String(json.item.text ?? ''));
     }
     if (json.type === 'item.started' && json.item?.type === 'command_execution') {
-      return `\x1b[38;2;0;204;204mshell: ${this.#first(String(json.item.command ?? ''))}\x1b[39m`;
+      return this.#program(String(json.item.command ?? ''));
     }
     if (json.type === 'item.completed' && json.item?.type === 'file_change') {
       return `editing ${(json.item.changes ?? []).map((c) => c.path).join(', ')}`;
@@ -66,6 +66,9 @@ export class Event {
       if (phrase !== undefined) {
         return this.#first(phrase);
       }
+      if (part.name === 'Bash' && input.command !== undefined) {
+        return this.#program(String(input.command));
+      }
       return `\x1b[38;2;0;204;204m${
         [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
           .filter((p) => p !== undefined)
@@ -74,6 +77,9 @@ export class Event {
       }\x1b[39m`;
     }
     return '';
+  }
+  #program(command) {
+    return `\x1b[38;2;0;204;204m${command.trim().split(/\s+/)[0].split('/').at(-1)}\x1b[39m`;
   }
   #plain(name, input) {
     const phrases = {
