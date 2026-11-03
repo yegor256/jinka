@@ -44,6 +44,6 @@ describe('Summary', () => {
   });
   it('shortens the home directory to a tilde', () => {
     const name = randomUUID();
-    assertThat('home directory is not shortened', new Summary(Date.now(), '0.0.6', new Jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: join(homedir(), name) }).text(), containsString(`\nwishes remained in ~/${name}: 0\n`));
+    assertThat('home directory is not shortened', new Summary(Date.now(), '0.0.6', new Jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: join(homedir(), name) }).text(), containsString(`\nwishes remained in ${join('~', name)}: 0\n`));
   });
 });
