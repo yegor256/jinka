@@ -3,7 +3,7 @@
 
 import { mkdtemp, mkdir, writeFile, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout } from 'node:timers/promises';
@@ -17,7 +17,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -38,7 +38,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -57,7 +57,7 @@ describe('jinka command', () => {
     const archive = join(home, '.jinka', 'archive');
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'], env: { ...process.env, HOME: home, USERPROFILE: home } }
     );
     await setTimeout(500);
@@ -97,7 +97,7 @@ describe('jinka command', () => {
     const skill = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--skill', skill, '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--skill', skill, '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -120,7 +120,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0, 0, [], 'codex').path(), '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0, 0, [], 'codex').path(), '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -143,7 +143,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(0).path(), '--engine', 'codex', '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--engine', 'codex', '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -159,6 +159,27 @@ describe('jinka command', () => {
       (await Promise.all((await readdir(logs)).map((f) => readFile(join(logs, f), 'utf8')))).join(''),
       containsString('exec --json')
     );
+  });
+  it('refuses to start when the pid file already exists', async () => {
+    const pid = join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt');
+    await writeFile(pid, randomUUID());
+    assertThat(
+      'jinka started while another one was running',
+      spawnSync(process.execPath, ['bin/jinka.js', '--agent', await new Script(0).path(), '--pid', pid, '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))], { encoding: 'utf8', timeout: 5000 }).status,
+      equalTo(1)
+    );
+  });
+  it('deletes the pid file after an interrupt', async () => {
+    const pid = join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt');
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(0).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', pid, '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
+      { stdio: ['pipe', 'ignore', 'ignore'] }
+    );
+    await setTimeout(500);
+    jinka.stdin.write('\x03');
+    await Promise.race([once(jinka, 'exit'), setTimeout(5000)]);
+    assertThat('pid file was not deleted', await readdir(dirname(pid)), equalTo([]));
   });
   it('prints help with option descriptions', () => {
     assertThat(
@@ -196,7 +217,7 @@ describe('jinka command', () => {
     reader.stdout.on('data', (c) => chunks.push(c));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await new Script(1, 0, Array.from({ length: 2000 }, () => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: randomUUID().repeat(4) }] } }))).path(), '--threads', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      ['bin/jinka.js', '--agent', await new Script(1, 0, Array.from({ length: 2000 }, () => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: randomUUID().repeat(4) }] } }))).path(), '--threads', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', reader.stdin, 'ignore'] }
     );
     reader.stdin.destroy();
