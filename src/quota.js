@@ -17,7 +17,7 @@ export class Quota {
   }
   text(now) {
     return this.#live(now)
-      .map(([n, share]) => `${Math.round(share)}%-${{ 'five-hour': '5H', 'seven-day': 'W', 'thirty-day': 'M' }[n] ?? n}`)
+      .map(([n, share]) => `${Math.round(share)}%-${{ 'five-hour': '5H', 'seven-day': 'W', 'thirty-day': 'M', 'seven-day-overage-included': 'W+' }[n] ?? n}`)
       .join(',') || '-';
   }
   left(now) {
