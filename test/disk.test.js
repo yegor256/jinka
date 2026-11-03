@@ -28,6 +28,9 @@ describe('Disk', () => {
   it('asks the agent to work in git worktrees', () => {
     assertThat('git worktrees were not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('do all your work inside a separate Git worktree'));
   });
+  it('asks the agent to hand any waiting over to a new wish', () => {
+    assertThat('waiting was not handed over to a new wish', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never spend time waiting while doing a wish'));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', new Disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
