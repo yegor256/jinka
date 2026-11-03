@@ -21,7 +21,7 @@ export class Status {
       `agent:${styleText('bgGray', this.agent, { validateStream: false })}`,
       `model:${styleText('bgGray', this.model === '' ? 'default' : this.model, { validateStream: false })}`,
       `tokens:${styleText('bgGray', this.tokens.text(), { validateStream: false })}`,
-      `${[this.quota.name(now), 'quota'].filter((part) => part !== '').join('-')}:${styleText('bgGray', this.quota.text(now), { validateStream: false })}`
+      `quota:${styleText('bgGray', this.quota.text(now), { validateStream: false })}`
     ].join(' ');
   }
 }

@@ -9,33 +9,39 @@ describe('Quota', () => {
   it('knows nothing from the start', () => {
     assertThat('fresh quota is not a dash', new Quota().text(Date.now()), equalTo('-'));
   });
-  it('shows the share of the five-hour window that is left', () => {
+  it('shows the share of every window that is left', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.44 }, seven_day: { utilization: 0.17 } } }, uuid: randomUUID() }));
-    assertThat('remaining quota is wrong', quota.text(Date.now()), equalTo('56%'));
+    assertThat('remaining quota is wrong', quota.text(Date.now()), equalTo('56%-5H,83%-W'));
   });
   it('rounds the share that is left', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.12873 } } } }));
-    assertThat('remaining quota was not rounded', quota.text(Date.now()), equalTo('87%'));
+    assertThat('remaining quota was not rounded', quota.text(Date.now()), equalTo('87%-5H'));
   });
   it('keeps the latest event', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.31 } } } }));
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.93 } } } }));
-    assertThat('latest event was not kept', quota.text(Date.now()), equalTo('7%'));
+    assertThat('latest event was not kept', quota.text(Date.now()), equalTo('7%-5H'));
   });
   it('shows the share of the only window there is', () => {
     const quota = new Quota();
     quota.add(`not a json ${randomUUID()}`);
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { thirty_day: { utilization: 0.08 } } } }));
     quota.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 42 } } }));
-    assertThat('the only window was not shown', quota.text(Date.now()), equalTo('92%'));
+    assertThat('the only window was not shown', quota.text(Date.now()), equalTo('92%-M'));
   });
-  it('shows the share of the tightest window', () => {
+  it('keeps the name of a window without a label', () => {
     const quota = new Quota();
-    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.19 }, seven_day: { utilization: 0.74 } } } }));
-    assertThat('tightest window was not shown', quota.text(Date.now()), equalTo('26%'));
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { '90_minute': { utilization: 0.19 } } } }));
+    assertThat('unlabeled window lost its name', quota.text(Date.now()), equalTo('81%-90-minute'));
+  });
+  it('skips the share of a window that was reset', () => {
+    const quota = new Quota();
+    const now = Date.now();
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.94, resetsAt: now / 1000 - 20 }, seven_day: { utilization: 0.74, resetsAt: now / 1000 + 4000 } } } }));
+    assertThat('reset window was shown', quota.text(now), equalTo('26%-W'));
   });
   it('knows nothing when every window was reset', () => {
     const quota = new Quota();

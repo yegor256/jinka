@@ -22,7 +22,7 @@ describe('Rollouts', () => {
     const rollouts = new Rollouts(quota, dir);
     rollouts.add(JSON.stringify({ type: 'thread.started', thread_id: thread }));
     rollouts.add(JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 31, output_tokens: 7 } }));
-    assertThat('codex quota was not read', quota.text(Date.now()), equalTo('83%'));
+    assertThat('codex quota was not read', quota.text(Date.now()), equalTo('83%-5H'));
   });
   it('names the window of codex by its length', () => {
     const dir = mkdtempSync(join(tmpdir(), 'rollouts-'));
@@ -48,7 +48,7 @@ describe('Rollouts', () => {
     const rollouts = new Rollouts(quota, dir);
     rollouts.add(JSON.stringify({ type: 'thread.started', thread_id: thread }));
     rollouts.add(JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 5, output_tokens: 2 } }));
-    assertThat('latest rate limits were not taken', quota.text(Date.now()), equalTo('48%'));
+    assertThat('latest rate limits were not taken', quota.text(Date.now()), equalTo('48%-W'));
   });
   it('knows nothing when the session file is missing', () => {
     const quota = new Quota();
