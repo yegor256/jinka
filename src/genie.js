@@ -33,13 +33,15 @@ export class Genie {
     let link = '';
     const usage = new Tokens();
     const model = new Model();
+    let count = 0;
     createInterface({ input: child.stdout }).on('line', (line) => {
+      count += 1;
       this.meter.add(line);
       usage.add(line);
       model.add(line);
-      summary = new Event(line).summary() || summary;
-      link = new Event(line).link() || link;
-      const text = new Event(line).text();
+      summary = new Event(line, count).summary() || summary;
+      link = new Event(line, count).link() || link;
+      const text = new Event(line, count).text();
       if (text !== '') {
         row.show(text);
       }
