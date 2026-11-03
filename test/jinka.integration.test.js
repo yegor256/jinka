@@ -181,6 +181,23 @@ describe('jinka command', () => {
       matchesPattern(/coding agents \(\d+\.\d+\.\d+\)\n/)
     );
   });
+  it('prints the summary through a slow pipe after an interrupt', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const reader = spawn(process.execPath, ['-e', 'setTimeout(() => process.stdin.pipe(process.stdout), 2000)'], { stdio: ['pipe', 'pipe', 'ignore'] });
+    const chunks = [];
+    reader.stdout.on('data', (c) => chunks.push(c));
+    const jinka = spawn(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await new Script(1, 0, Array.from({ length: 2000 }, () => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: randomUUID().repeat(4) }] } }))).path(), '--threads', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--wishes', dir],
+      { stdio: ['pipe', reader.stdin, 'ignore'] }
+    );
+    reader.stdin.destroy();
+    await setTimeout(1500);
+    jinka.stdin.write('\x03');
+    await Promise.race([once(reader, 'close'), setTimeout(6000)]);
+    assertThat('summary was lost in the pipe', Buffer.concat(chunks).toString(), containsString('\nsessions finished: 0\n'));
+  });
   it('prints the version', () => {
     assertThat(
       'version was not printed',

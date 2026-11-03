@@ -85,7 +85,7 @@ const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
 const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, engine === 'codex' ? new Rollouts(quota, join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions')) : quota])));
-const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
+const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const start = Date.now();
 const screen = new Summarized(
   process.stdout.isTTY
@@ -100,6 +100,10 @@ const screen = new Summarized(
   process.stdout
 );
 process.on('exit', () => screen.close());
+const quit = (code) => {
+  screen.close();
+  process.stdout.write('', () => process.stderr.write('', () => process.exit(code)));
+};
 const controller = new AbortController();
 const interrupt = () => {
   if (controller.signal.aborted) {
@@ -117,9 +121,9 @@ try {
     screen,
     crew
   ).run(controller.signal);
-  process.exit(130);
+  quit(130);
 } catch (e) {
   screen.close();
   console.error(e.message);
-  process.exit(1);
+  quit(1);
 }
