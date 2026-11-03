@@ -167,6 +167,13 @@ describe('jinka command', () => {
       containsString('how many wishes run at once')
     );
   });
+  it('runs six threads by default', () => {
+    assertThat(
+      'help did not show six threads by default',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout.replace(/\s+/g, ' '),
+      containsString('while running (default: 6)')
+    );
+  });
   it('pauses permanent wishes for one minute by default', () => {
     assertThat(
       'help did not show a one minute default pause',
