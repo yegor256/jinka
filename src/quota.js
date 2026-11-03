@@ -16,7 +16,9 @@ export class Quota {
     }
   }
   text(now) {
-    return this.name(now) === '' ? '-' : `${Math.round(this.left(now))}%`;
+    return this.#live(now)
+      .map(([n, share]) => `${Math.round(share)}%-${{ 'five-hour': '5H', 'seven-day': 'W', 'thirty-day': 'M' }[n] ?? n}`)
+      .join(',') || '-';
   }
   left(now) {
     return this.#tightest(now)[1];
@@ -25,9 +27,11 @@ export class Quota {
     return this.#tightest(now)[0];
   }
   #tightest(now) {
+    return this.#live(now).reduce((a, b) => (b[1] < a[1] ? b : a), ['', 100]);
+  }
+  #live(now) {
     return (this.windows.at(-1) ?? [])
       .filter(([, w]) => typeof w.resetsAt !== 'number' || w.resetsAt * 1000 > now)
-      .map(([n, w]) => [n.replaceAll('_', '-'), (1 - w.utilization) * 100])
-      .reduce((a, b) => (b[1] < a[1] ? b : a), ['', 100]);
+      .map(([n, w]) => [n.replaceAll('_', '-'), (1 - w.utilization) * 100]);
   }
 }
