@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { stripVTControlCharacters } from 'node:util';
 import { mkdtemp, mkdir, writeFile, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -131,6 +132,14 @@ describe('Genie', () => {
     await writeFile(join(dir, 'm.md'), text);
     await new Genie(new Claude(new Agent(await new Script(0).path()), '', '', '/plugin'), new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: (line) => seen.push(line) }).run(new Wish(dir, 'm.md', new Map()), new Row([], 0), AbortSignal.timeout(5000));
     assertThat('lines did not reach the tokens', seen.join('\n'), containsString(text));
+  });
+  it('shows the length of the agent log next to a shell command', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const count = 2 + Math.floor(Math.random() * 30);
+    const lines = [];
+    await writeFile(join(dir, 'r.md'), randomUUID());
+    await new Genie(new Claude(new Agent(await new Script(0, 0, [...Array.from({ length: count - 1 }, () => JSON.stringify({ type: 'system', subtype: randomUUID() })), JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'gfind . -name ж' } }] } })]).path()), '', '', '/plugin'), new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }).run(new Wish(dir, 'r.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('length of the log was not shown', lines.map((l) => stripVTControlCharacters(l[1])), hasItem(equalTo(`gfind (${count} lines)`)));
   });
   it('stops the agent when the signal aborts', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));

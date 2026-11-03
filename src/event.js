@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 export class Event {
-  constructor(line) {
+  constructor(line, count) {
     this.line = line;
+    this.count = count;
   }
   text() {
     try {
@@ -79,7 +80,7 @@ export class Event {
     return '';
   }
   #program(command) {
-    return `\x1b[38;2;0;204;204m${command.trim().split(/\s+/)[0].split('/').at(-1)}\x1b[39m`;
+    return `\x1b[38;2;0;204;204m${command.trim().split(/\s+/)[0].split('/').at(-1)}\x1b[39m (${this.count} lines)`;
   }
   #plain(name, input) {
     const phrases = {
