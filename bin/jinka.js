@@ -32,6 +32,7 @@ import { Crew } from '../src/crew.js';
 import { Jobs } from '../src/jobs.js';
 import { Summary } from '../src/summary.js';
 import { Summarized } from '../src/summarized.js';
+import { Semaphore } from '../src/semaphore.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -75,9 +76,16 @@ const program = new Command()
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
+  .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start').default(join(homedir(), '.jinka', 'pid.txt'), '~/.jinka/pid.txt'))
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
+const semaphore = new Semaphore(resolve(values.pid));
+await semaphore.acquire().catch((e) => {
+  console.error(e.message);
+  process.exit(1);
+});
+process.on('exit', () => semaphore.release());
 const dir = resolve(values.wishes);
 const engine = values.engine ?? (parse(values.agent).name === 'codex' ? 'codex' : 'claude');
 const agent = values.agent === '' ? engine : values.agent;
