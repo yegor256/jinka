@@ -93,7 +93,7 @@ describe('Tty', () => {
     new Tty(stream, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), '0.0.0')).row(0).show('a.md\tworking');
     stream.columns = 8;
     stream.emit('resize');
-    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('a.md  00'));
+    assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('a.md   0'));
   });
   it('shows an elapsed timer', () => {
     const chunks = [];
@@ -213,7 +213,13 @@ describe('Tty', () => {
     const tty = new Tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(2, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(2, 16, new Protocol([])), new Protocol([]), () => {}), '0.0.0'));
     tty.row(0).show('\x1b[90midle\x1b[39m\twaiting');
     tty.row(1).show('abcdefgh.md\tworking');
-    assertThat('timers are not aligned', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(2, 4).map((l) => l.indexOf('00:00')), equalTo([13, 13]));
+    assertThat('timers are not aligned', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(2, 4).map((l) => l.indexOf('00:00')), equalTo([14, 14]));
+  });
+  it('pads the timer of a thread with spaces on the left to six symbols', () => {
+    const chunks = [];
+    const name = `${randomUUID()}.md`;
+    new Tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), '0.0.0')).row(0).show(`${name}\tworking`);
+    assertThat('timer was not padded to six symbols', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], startsWith(`${name}   00:00  `));
   });
   it('turns a link to a pull request into a short blue clickable hyperlink', () => {
     const chunks = [];
@@ -235,12 +241,12 @@ describe('Tty', () => {
   it('paints the timer of a running thread green', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), '0.0.0')).row(0).show(`${randomUUID()}.md\tworking`);
-    assertThat('timer of a running thread was not green', chunks.at(-1), containsString('\x1b[32m00:00\x1b[39m'));
+    assertThat('timer of a running thread was not green', chunks.at(-1), containsString('\x1b[32m 00:00\x1b[39m'));
   });
   it('paints the timer of an idle thread gray', () => {
     const chunks = [];
     new Tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, new Crew(1, 16, new Protocol([])), new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()), new Legend(new Freeze(new Crew(1, 16, new Protocol([])), new Protocol([]), () => {}), '0.0.0')).row(0).show(`\x1b[90midle\x1b[39m\t${randomUUID()}`);
-    assertThat('timer of an idle thread was not gray', chunks.at(-1), containsString('\x1b[90m00:00\x1b[39m'));
+    assertThat('timer of an idle thread was not gray', chunks.at(-1), containsString('\x1b[90m 00:00\x1b[39m'));
   });
   it('turns the mouse wheel into arrow keys', () => {
     const chunks = [];
