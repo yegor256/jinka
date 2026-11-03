@@ -21,7 +21,8 @@ export class Disk {
       `and write each of them as a separate Markdown file in the directory ${join(this.wishes, dirname(wish.name()))}.`,
       `Always start the name of every new wish file with a small English letter, never with a capital one.`,
       `In every Git repository you touch, do all your work inside a separate Git worktree, never in the main directory of the repository, so that other wishes running at the same time do not see your changes.`,
-      `Your memory lives in the directory ${this.memory}, keep there what the skills tell you to keep.`,
+      `Never spend time waiting while doing a wish, neither sleeping nor polling for a build, a review, a merge, or anything else;`,
+      `if something must happen first, write a new wish that waits for it and finishes the job, and then complete the current wish right away.`,      `Your memory lives in the directory ${this.memory}, keep there what the skills tell you to keep.`,
       `Jinka runs ${this.crew.size()} threads right now, so up to ${this.crew.size()} wishes run at once.`
     ];
   }
