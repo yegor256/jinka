@@ -54,14 +54,22 @@ describe('Status', () => {
     tokens.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 813 } } }));
     assertThat('tokens are not painted gray', new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens, new Quota()).text(), containsString(' tokens:\x1b[100m813\x1b[49m '));
   });
+  it('shows a dash when nothing is known about the quota', () => {
+    assertThat('unknown quota is not a dash', stripVTControlCharacters(new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), new Quota()).text()), endsWith(' quota:-'));
+  });
+  it('names the tightest window of the quota', () => {
+    const quota = new Quota();
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { thirty_day: { utilization: 0.13 } } } }));
+    assertThat('tightest window is not named', stripVTControlCharacters(new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'codex', 'gpt', new Tokens(), quota).text()), endsWith(' thirty-day-quota:87%'));
+  });
   it('shows the five-hour quota that is left', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.27 } } } }));
-    assertThat('quota is not shown', stripVTControlCharacters(new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), quota).text()), endsWith(' 5h-quota:73%'));
+    assertThat('quota is not shown', stripVTControlCharacters(new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), quota).text()), endsWith(' five-hour-quota:73%'));
   });
   it('paints the quota on a dark gray background', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { five_hour: { utilization: 0.61 } } } }));
-    assertThat('quota is not painted dark gray', new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), quota).text(), endsWith(' 5h-quota:\x1b[100m39%\x1b[49m'));
+    assertThat('quota is not painted dark gray', new Status(Date.now(), new Jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', new Tokens(), quota).text(), endsWith(' five-hour-quota:\x1b[100m39%\x1b[49m'));
   });
 });

@@ -14,13 +14,14 @@ export class Status {
     this.quota = quota;
   }
   text() {
+    const now = Date.now();
     return [
-      `up:${styleText('bgGray', new Duration(Date.now() - this.start).hours(), { validateStream: false })}`,
+      `up:${styleText('bgGray', new Duration(now - this.start).hours(), { validateStream: false })}`,
       `done:${styleText('bgGray', this.jobs.text(), { validateStream: false })}`,
       `agent:${styleText('bgGray', this.agent, { validateStream: false })}`,
       `model:${styleText('bgGray', this.model === '' ? 'default' : this.model, { validateStream: false })}`,
       `tokens:${styleText('bgGray', this.tokens.text(), { validateStream: false })}`,
-      `5h-quota:${styleText('bgGray', this.quota.text(), { validateStream: false })}`
+      `${[this.quota.name(now), 'quota'].filter((part) => part !== '').join('-')}:${styleText('bgGray', this.quota.text(now), { validateStream: false })}`
     ].join(' ');
   }
 }

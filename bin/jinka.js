@@ -18,6 +18,7 @@ import { Tty } from '../src/tty.js';
 import { Log } from '../src/log.js';
 import { Status } from '../src/status.js';
 import { Quota } from '../src/quota.js';
+import { Rollouts } from '../src/rollouts.js';
 import { Meters } from '../src/meters.js';
 import { Freeze } from '../src/freeze.js';
 import { Frozen } from '../src/frozen.js';
@@ -81,7 +82,7 @@ const agent = values.agent === '' ? engine : values.agent;
 const tokens = new Tokens();
 const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
-const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, quota])));
+const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, engine === 'codex' ? new Rollouts(quota, join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions')) : quota])));
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => process.exit(0));
 const screen = process.stdout.isTTY
   ? new Tty(
