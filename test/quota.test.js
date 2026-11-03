@@ -32,6 +32,11 @@ describe('Quota', () => {
     quota.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 42 } } }));
     assertThat('the only window was not shown', quota.text(Date.now()), equalTo('92%-M'));
   });
+  it('labels the weekly window with overage included', () => {
+    const quota = new Quota();
+    quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { seven_day_overage_included: { utilization: 0.15 } } } }));
+    assertThat('overage window has a long label', quota.text(Date.now()), equalTo('85%-W+'));
+  });
   it('keeps the name of a window without a label', () => {
     const quota = new Quota();
     quota.add(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { unifiedWindows: { '90_minute': { utilization: 0.19 } } } }));
