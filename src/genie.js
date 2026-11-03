@@ -34,6 +34,9 @@ export class Genie {
     const usage = new Tokens();
     const model = new Model();
     let count = 0;
+    createInterface({ input: child.stderr }).on('line', () => {
+      count += 1;
+    });
     createInterface({ input: child.stdout }).on('line', (line) => {
       count += 1;
       this.meter.add(line);

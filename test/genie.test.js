@@ -141,6 +141,14 @@ describe('Genie', () => {
     await new Genie(new Claude(new Agent(await new Script(0, 0, [...Array.from({ length: count - 1 }, () => JSON.stringify({ type: 'system', subtype: randomUUID() })), JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'gfind . -name ж' } }] } })]).path()), '', '', '/plugin'), new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }).run(new Wish(dir, 'r.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
     assertThat('length of the log was not shown', lines.map((l) => stripVTControlCharacters(l[1])), hasItem(equalTo(`gfind (${count} lines)`)));
   });
+  it('counts the error output of the agent in the length of the log', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const count = 1 + Math.floor(Math.random() * 30);
+    const lines = [];
+    await writeFile(join(dir, 's.md'), randomUUID());
+    await new Genie(new Claude(new Agent(await new Script(0, 0, [JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'gsed -n 1p ж' } }] } })], 'agent', Array.from({ length: count }, () => `warning ${randomUUID()}`)).path()), '', '', '/plugin'), new Disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }).run(new Wish(dir, 's.md', new Map()), new Row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('error output was not counted', lines.map((l) => stripVTControlCharacters(l[1])), hasItem(equalTo(`gsed (${count + 1} lines)`)));
+  });
   it('stops the agent when the signal aborts', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     await writeFile(join(dir, 'e.md'), randomUUID());
