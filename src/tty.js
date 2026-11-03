@@ -80,7 +80,7 @@ export class Tty {
     const top = [
       `${upper} ${this.status.text()}`,
       lower,
-      ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${styleText(['', 'idle'].includes(stripVTControlCharacters(l.head)) ? 'gray' : 'green', new Duration(Date.now() - l.start).minutes(), { validateStream: false })}  ${l.tail}`),
+      ...lines.map(([, l]) => `${l.head}${' '.repeat(width - stripVTControlCharacters(l.head).length)}  ${styleText(['', 'idle'].includes(stripVTControlCharacters(l.head)) ? 'gray' : 'green', new Duration(Date.now() - l.start).clock(), { validateStream: false })}  ${l.tail}`),
       '-'.repeat(10),
       ...notes.slice(Math.max(0, notes.length - height - this.view.depth), notes.length - this.view.depth)
     ];
