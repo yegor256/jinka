@@ -39,6 +39,14 @@ describe('Wand', () => {
     await new Wand(new Wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, new Row(lines, 0), new Protocol([])).run(AbortSignal.timeout(300));
     assertThat('wish name was not shown', lines, hasItem(equalTo([0, `${name}\tworking`])));
   });
+  it('ellipsizes a long wish name next to the agent progress', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `${randomUUID()}${randomUUID()}${randomUUID()}.md`;
+    const lines = [];
+    await writeFile(join(dir, name), randomUUID());
+    await new Wand(new Wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, new Row(lines, 0), new Protocol([])).run(AbortSignal.timeout(300));
+    assertThat('long wish name was not ellipsized', lines, hasItem(equalTo([0, `${name.slice(0, 31)}…${name.slice(-31)}\tworking`])));
+  });
   it('shows idle in gray', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const lines = [];
