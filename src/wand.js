@@ -3,6 +3,7 @@
 
 import { styleText } from 'node:util';
 import { Duration } from './duration.js';
+import { Ellipsized } from './ellipsized.js';
 
 export class Wand {
   constructor(wishes, agent, row, protocol) {
@@ -25,9 +26,9 @@ export class Wand {
   async #once(signal) {
     this.row.show(`${styleText('gray', 'idle', { validateStream: false })}\t${styleText('gray', 'waiting for wishes', { validateStream: false })}`);
     const wish = await this.wishes.next(signal);
-    this.row.show(`${wish.name()}\tstarting the agent`);
+    this.row.show(`${new Ellipsized(wish.name(), 64).text()}\tstarting the agent`);
     const start = Date.now();
-    const { code, summary, link = '', tokens, model } = await this.agent.run(wish, { show: (text) => this.row.show(`${wish.name()}\t${text}`) }, signal);
+    const { code, summary, link = '', tokens, model } = await this.agent.run(wish, { show: (text) => this.row.show(`${new Ellipsized(wish.name(), 64).text()}\t${text}`) }, signal);
     const suffix = [`(${[wish.name(), new Duration(Date.now() - start).minutes(), tokens, model].filter((p) => p !== '').join(' ')})`, link].filter((p) => p !== '').join(' ');
     if (code === 0) {
       await wish.close();
