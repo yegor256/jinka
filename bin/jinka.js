@@ -78,6 +78,7 @@ const program = new Command()
   .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
   .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start').default(join(homedir(), '.jinka', 'pid.txt'), '~/.jinka/pid.txt'))
+  .option('--no-tui', 'print only the protocol, without the status bars and the list of threads')
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
@@ -97,8 +98,9 @@ const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Ag
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const release = new Release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const start = Date.now();
+const tui = process.stdout.isTTY && values.tui;
 const screen = new Summarized(
-  process.stdout.isTTY
+  tui
     ? new Tty(
       process.stdout,
       crew,
@@ -110,7 +112,7 @@ const screen = new Summarized(
   process.stdout
 );
 process.on('exit', () => screen.close());
-if (process.stdout.isTTY) {
+if (tui) {
   release.check();
 }
 const quit = (code) => {
