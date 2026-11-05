@@ -2,33 +2,28 @@
 // SPDX-License-Identifier: MIT
 
 import { setTimeout } from 'node:timers/promises';
-import { Duration } from './duration.js';
+import { duration } from './duration.js';
 
-export class Throttled {
-  constructor(origin, quota, throttle, interval, notice) {
-    this.origin = origin;
-    this.quota = quota;
-    this.throttle = throttle;
-    this.interval = interval;
-    this.notice = notice;
-  }
-  async next(signal) {
-    await this.#wait(signal, true);
-    return this.origin.next(signal);
-  }
-  async #wait(signal, first) {
+export const throttled = (origin, quota, throttle, interval, notice) => {
+  const wait = async (signal, first) => {
     signal.throwIfAborted();
-    const left = this.quota.left(Date.now());
-    if (left >= this.throttle && first) {
+    const left = quota.left(Date.now());
+    if (left >= throttle && first) {
       return;
     }
-    const share = `${Math.round(left)}% of the ${this.quota.name(Date.now())} quota is left`;
-    if (left >= this.throttle) {
-      this.notice.warn(`now ${share}, not below ${this.throttle}%, new jobs resume`);
+    const share = `${Math.round(left)}% of the ${quota.name(Date.now())} quota is left`;
+    if (left >= throttle) {
+      notice.warn(`now ${share}, not below ${throttle}%, new jobs resume`);
       return;
     }
-    this.notice.warn(`${first ? '' : 'still '}only ${share}, below ${this.throttle}%, new jobs wait, next check in ${new Duration(this.interval).phrase()}`);
-    await setTimeout(this.interval, undefined, { signal });
-    await this.#wait(signal, false);
-  }
-}
+    notice.warn(`${first ? '' : 'still '}only ${share}, below ${throttle}%, new jobs wait, next check in ${duration(interval).phrase()}`);
+    await setTimeout(interval, undefined, { signal });
+    await wait(signal, false);
+  };
+  return Object.freeze({
+    next: async (signal) => {
+      await wait(signal, true);
+      return origin.next(signal);
+    }
+  });
+};

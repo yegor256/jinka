@@ -1,28 +1,24 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-export class Keys {
-  constructor(stream, freeze, crew, interrupt) {
-    this.stream = stream;
-    this.freeze = freeze;
-    this.crew = crew;
-    this.interrupt = interrupt;
-  }
-  listen() {
-    if (this.stream.isTTY) {
-      this.stream.setRawMode(true);
-    }
-    this.stream.on('data', (chunk) => [...chunk.toString()].forEach((k) => this.#press(k)));
-  }
-  #press(key) {
+export const keys = (stream, freeze, crew, interrupt) => {
+  const press = (key) => {
     ({
-      f: () => this.freeze.on(),
-      F: () => this.freeze.on(),
-      c: () => this.freeze.off(),
-      C: () => this.freeze.off(),
-      '+': () => this.crew.more(),
-      '-': () => this.crew.less(),
-      '\x03': () => this.interrupt()
+      f: () => freeze.on(),
+      F: () => freeze.on(),
+      c: () => freeze.off(),
+      C: () => freeze.off(),
+      '+': () => crew.more(),
+      '-': () => crew.less(),
+      '\x03': () => interrupt()
     })[key]?.();
-  }
-}
+  };
+  return Object.freeze({
+    listen: () => {
+      if (stream.isTTY) {
+        stream.setRawMode(true);
+      }
+      stream.on('data', (chunk) => [...chunk.toString()].forEach((k) => press(k)));
+    }
+  });
+};

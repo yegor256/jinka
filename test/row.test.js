@@ -3,13 +3,13 @@
 
 import { randomUUID } from 'node:crypto';
 import { assertThat, hasItem, equalTo } from 'hamjest';
-import { Row } from '../src/row.js';
+import { row } from '../src/row.js';
 
-describe('Row', () => {
+describe('row', () => {
   it('sends its index and text to the screen', () => {
     const lines = [];
     const text = randomUUID();
-    new Row(lines, 7).show(text);
+    row(lines, 7).show(text);
     assertThat('row did not reach the screen', lines, hasItem(equalTo([7, text])));
   });
 });
