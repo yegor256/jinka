@@ -202,6 +202,13 @@ describe('jinka command', () => {
       containsString('runs again (default: 60000)')
     );
   });
+  it('offers an option that turns the terminal user interface off', () => {
+    assertThat(
+      'help did not describe the no-tui option',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout.replace(/\s+/g, ' '),
+      containsString('--no-tui print only the protocol')
+    );
+  });
   it('prints the version at the end of the help description', () => {
     assertThat(
       'help did not end its description with the version',
