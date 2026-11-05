@@ -15,6 +15,7 @@ import { Codex } from '../src/codex.js';
 import { Genie } from '../src/genie.js';
 import { Disk } from '../src/disk.js';
 import { Tty } from '../src/tty.js';
+import { Colorless } from '../src/colorless.js';
 import { Log } from '../src/log.js';
 import { Status } from '../src/status.js';
 import { Quota } from '../src/quota.js';
@@ -78,6 +79,7 @@ const program = new Command()
   .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
   .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start').default(join(homedir(), '.jinka', 'pid.txt'), '~/.jinka/pid.txt'))
+  .option('--no-color', 'paint nothing in the terminal, which a non-empty NO_COLOR environment variable also does')
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
@@ -100,7 +102,7 @@ const start = Date.now();
 const screen = new Summarized(
   process.stdout.isTTY
     ? new Tty(
-      process.stdout,
+      values.color && !process.env.NO_COLOR ? process.stdout : new Colorless(process.stdout),
       crew,
       new Status(start, jobs, agent, values.model, tokens, quota),
       new Legend(freeze, release)
