@@ -209,6 +209,13 @@ describe('jinka command', () => {
       containsString('--no-tui print only the protocol')
     );
   });
+  it('prints options in alphabetical order', () => {
+    assertThat(
+      'help did not sort its options alphabetically',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout,
+      matchesPattern(/--agent[^]*--archive[^]*--effort[^]*--engine[^]*--interval[^]*--limit[^]*--logs[^]*--memory[^]*--model[^]*--no-color[^]*--no-tui[^]*--pause[^]*--pid[^]*--skill[^]*--threads[^]*--throttle[^]*--wishes/)
+    );
+  });
   it('prints the version at the end of the help description', () => {
     assertThat(
       'help did not end its description with the version',
