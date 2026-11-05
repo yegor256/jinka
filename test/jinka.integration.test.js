@@ -224,7 +224,7 @@ describe('jinka command', () => {
     await setTimeout(1500);
     jinka.stdin.write('\x03');
     await Promise.race([once(reader, 'close'), setTimeout(6000)]);
-    assertThat('summary was lost in the pipe', Buffer.concat(chunks).toString(), containsString('\nsessions finished: 0\n'));
+    assertThat('summary was lost in the pipe', Buffer.concat(chunks).toString(), containsString('\nwishes came true: 0\n'));
   });
   it('prints the version', () => {
     assertThat(
