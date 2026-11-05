@@ -5,61 +5,61 @@ import { text } from 'node:stream/consumers';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { assertThat, containsString, endsWith, not } from 'hamjest';
-import { Codex } from '../src/codex.js';
-import { Agent } from '../src/agent.js';
-import { Script } from './fixtures/script.js';
+import { codex } from '../src/codex.js';
+import { agent } from '../src/agent.js';
+import { script } from './fixtures/script.js';
 
-describe('Codex', () => {
+describe('codex', () => {
   it('passes the arguments to the agent', async () => {
     const arg = randomUUID();
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([arg], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([arg], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('argument did not reach the agent', await text(child.stdout), containsString(arg));
   });
   it('starts the agent in headless mode with events in JSON', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('agent was not headless', await text(child.stdout), containsString('exec --json'));
   });
   it('skips the approvals and the sandbox', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('approvals were not skipped', await text(child.stdout), containsString('--dangerously-bypass-approvals-and-sandbox'));
   });
   it('runs outside of a Git repository', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('agent was not allowed outside of Git', await text(child.stdout), containsString('--skip-git-repo-check'));
   });
   it('reads the prompt from the standard input', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([randomUUID()], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([randomUUID()], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('prompt was not read from the standard input', (await text(child.stdout)).split('\n').at(-3), endsWith(' -"}]}}'));
   });
   it('passes the model verbatim', async () => {
     const model = `gpt-${randomUUID()}`;
-    const child = new Codex(new Agent(await new Script(0).path()), model, '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), model, '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('model did not reach the agent', await text(child.stdout), containsString(`--model ${model}`));
   });
   it('omits the model when none is given', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('model was passed without being given', await text(child.stdout), not(containsString('--model')));
   });
   it('passes the effort as the reasoning effort', async () => {
     const effort = randomUUID();
-    const child = new Codex(new Agent(await new Script(0).path()), '', effort, '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', effort, '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('effort did not reach the agent', await text(child.stdout), containsString(`--config model_reasoning_effort=${effort}`));
   });
   it('omits the effort when none is given', async () => {
-    const child = new Codex(new Agent(await new Script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
+    const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('effort was passed without being given', await text(child.stdout), not(containsString('model_reasoning_effort')));
   });
   it('tells the agent where the skills live', () => {
     const plugin = `/${randomUUID()}`;
-    assertThat('skills were not mentioned', new Codex(new Agent(randomUUID()), '', '', plugin).lines().join('\n'), containsString(join(plugin, 'skills')));
+    assertThat('skills were not mentioned', codex(agent(randomUUID()), '', '', plugin).lines().join('\n'), containsString(join(plugin, 'skills')));
   });
 });

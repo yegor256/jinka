@@ -7,33 +7,33 @@ import { readFile } from 'node:fs/promises';
 import { resolve, join, dirname, parse } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { Jinka } from '../src/jinka.js';
-import { Wishes } from '../src/wishes.js';
-import { Agent } from '../src/agent.js';
-import { Claude } from '../src/claude.js';
-import { Codex } from '../src/codex.js';
-import { Genie } from '../src/genie.js';
-import { Disk } from '../src/disk.js';
-import { Tty } from '../src/tty.js';
-import { Log } from '../src/log.js';
-import { Status } from '../src/status.js';
-import { Quota } from '../src/quota.js';
-import { Rollouts } from '../src/rollouts.js';
-import { Meters } from '../src/meters.js';
-import { Freeze } from '../src/freeze.js';
-import { Frozen } from '../src/frozen.js';
-import { Limited } from '../src/limited.js';
-import { Throttled } from '../src/throttled.js';
-import { Keys } from '../src/keys.js';
-import { Wheel } from '../src/wheel.js';
-import { Legend } from '../src/legend.js';
-import { Release } from '../src/release.js';
-import { Tokens } from '../src/tokens.js';
-import { Crew } from '../src/crew.js';
-import { Jobs } from '../src/jobs.js';
-import { Summary } from '../src/summary.js';
-import { Summarized } from '../src/summarized.js';
-import { Semaphore } from '../src/semaphore.js';
+import { jinka } from '../src/jinka.js';
+import { wishes } from '../src/wishes.js';
+import { agent } from '../src/agent.js';
+import { claude } from '../src/claude.js';
+import { codex } from '../src/codex.js';
+import { genie } from '../src/genie.js';
+import { disk } from '../src/disk.js';
+import { tty } from '../src/tty.js';
+import { log } from '../src/log.js';
+import { status } from '../src/status.js';
+import { quota } from '../src/quota.js';
+import { rollouts } from '../src/rollouts.js';
+import { meters } from '../src/meters.js';
+import { freeze } from '../src/freeze.js';
+import { frozen } from '../src/frozen.js';
+import { limited } from '../src/limited.js';
+import { throttled } from '../src/throttled.js';
+import { keys } from '../src/keys.js';
+import { wheel } from '../src/wheel.js';
+import { legend } from '../src/legend.js';
+import { release } from '../src/release.js';
+import { tokens } from '../src/tokens.js';
+import { crew } from '../src/crew.js';
+import { jobs } from '../src/jobs.js';
+import { summary } from '../src/summary.js';
+import { summarized } from '../src/summarized.js';
+import { semaphore } from '../src/semaphore.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -82,38 +82,38 @@ const program = new Command()
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
-const semaphore = new Semaphore(resolve(values.pid));
-await semaphore.acquire().catch((e) => {
+const s = semaphore(resolve(values.pid));
+await s.acquire().catch((e) => {
   console.error(e.message);
   process.exit(1);
 });
-process.on('exit', () => semaphore.release());
+process.on('exit', () => s.release());
 const dir = resolve(values.wishes);
 const engine = values.engine ?? (parse(values.agent).name === 'codex' ? 'codex' : 'claude');
-const agent = values.agent === '' ? engine : values.agent;
-const tokens = new Tokens();
-const quota = new Quota();
-const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
-const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, engine === 'codex' ? new Rollouts(quota, join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions')) : quota])));
-const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
-const release = new Release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
+const a = values.agent === '' ? engine : values.agent;
+const t = tokens();
+const q = quota();
+const c = crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
+const j = jobs(genie((engine === 'codex' ? codex : claude)(agent(a), values.model, values.effort, resolve(values.skill)), disk(dir, resolve(values.logs), resolve(values.memory), c), meters([t, engine === 'codex' ? rollouts(q, join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions')) : q])));
+const f = freeze(c, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
+const r = release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const start = Date.now();
 const tui = process.stdout.isTTY && values.tui;
-const screen = new Summarized(
+const screen = summarized(
   tui
-    ? new Tty(
+    ? tty(
       process.stdout,
-      crew,
-      new Status(start, jobs, agent, values.model, tokens, quota),
-      new Legend(freeze, release)
+      c,
+      status(start, j, a, values.model, t, q),
+      legend(f, r)
     )
-    : new Log(process.stdout),
-  new Summary(start, pkg.version, jobs, { agent, model: values.model, effort: values.effort, wishes: dir }),
+    : log(process.stdout),
+  summary(start, pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir }),
   process.stdout
 );
 process.on('exit', () => screen.close());
 if (tui) {
-  release.check();
+  r.check();
 }
 const quit = (code) => {
   screen.close();
@@ -127,14 +127,14 @@ const interrupt = () => {
   controller.abort();
 };
 process.on('SIGINT', interrupt);
-new Keys(process.stdin, freeze, crew, interrupt).listen();
-new Wheel(process.stdin, screen).listen();
+keys(process.stdin, f, c, interrupt).listen();
+wheel(process.stdin, screen).listen();
 try {
-  await new Jinka(
-    new Limited(new Frozen(new Throttled(new Wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), quota, values.throttle, 15 * 60 * 1000, { warn: (text) => screen.notice().warn(text) }), freeze), values.limit, freeze),
-    jobs,
+  await jinka(
+    limited(frozen(throttled(wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), q, values.throttle, 15 * 60 * 1000, { warn: (text) => screen.notice().warn(text) }), f), values.limit, f),
+    j,
     screen,
-    crew
+    c
   ).run(controller.signal);
   quit(130);
 } catch (e) {

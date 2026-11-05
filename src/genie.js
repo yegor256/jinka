@@ -2,49 +2,44 @@
 // SPDX-License-Identifier: MIT
 
 import { createInterface } from 'node:readline';
-import { Event } from './event.js';
-import { Tokens } from './tokens.js';
-import { Model } from './model.js';
+import { event } from './event.js';
+import { tokens } from './tokens.js';
+import { model } from './model.js';
 
-export class Genie {
-  constructor(engine, disk, meter) {
-    this.engine = engine;
-    this.disk = disk;
-    this.meter = meter;
-  }
-  async run(wish, row, signal) {
+export const genie = (engine, disk, meter) => Object.freeze({
+  run: async (wish, row, signal) => {
     const prompt = [
       'Make this wish come true, working on your own without asking any questions:',
       '',
       await wish.text(),
       '',
-      ...this.disk.lines(wish),
-      ...this.engine.lines(),
+      ...disk.lines(wish),
+      ...engine.lines(),
       'When you finish, end with a single plain sentence that says what you did.',
       'On the next line, write the full URL of the GitHub issue or pull request you worked on, if there was one.'
     ].join('\n');
-    const log = await this.disk.log(wish);
-    const child = this.engine.start(this.disk.args(), signal);
+    const log = await disk.log(wish);
+    const child = engine.start(disk.args(), signal);
     child.stdin.on('error', () => {});
     child.stdin.end(prompt);
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log, { end: false });
     let summary = '';
     let link = '';
-    const usage = new Tokens();
-    const model = new Model();
+    const usage = tokens();
+    const m = model();
     let count = 0;
     createInterface({ input: child.stderr }).on('line', () => {
       count += 1;
     });
     createInterface({ input: child.stdout }).on('line', (line) => {
       count += 1;
-      this.meter.add(line);
+      meter.add(line);
       usage.add(line);
-      model.add(line);
-      summary = new Event(line, count).summary() || summary;
-      link = new Event(line, count).link() || link;
-      const text = new Event(line, count).text();
+      m.add(line);
+      summary = event(line, count).summary() || summary;
+      link = event(line, count).link() || link;
+      const text = event(line, count).text();
       if (text !== '') {
         row.show(text);
       }
@@ -55,7 +50,7 @@ export class Genie {
           reject(new Error(`Cannot start the agent "${child.spawnfile}": ${e.message}`));
         }
       });
-      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, link, tokens: usage.text(), model: model.text() })));
+      child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, link, tokens: usage.text(), model: m.text() })));
     });
   }
-}
+});
