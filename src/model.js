@@ -15,7 +15,11 @@ export const model = () => {
       }
     },
     text: () => {
-      const parts = (names.at(-1) ?? '').replace(/^claude-/, '').replace(/-\d{8}$/, '').split('-').filter((p) => p !== '');
+      const name = names.at(-1) ?? '';
+      if (!name.startsWith('claude-')) {
+        return name;
+      }
+      const parts = name.replace(/^claude-/, '').replace(/-\d{8}$/, '').split('-').filter((p) => p !== '');
       return [
         ...parts.filter((p) => !/^\d+$/.test(p)).map((p) => `${p[0].toUpperCase()}${p.slice(1)}`),
         parts.filter((p) => /^\d+$/.test(p)).join('.')

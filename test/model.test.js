@@ -24,6 +24,11 @@ describe('model', () => {
     m.add(JSON.stringify({ type: 'system', subtype: 'init', model: 'claude-3-7-sonnet-20250219' }));
     assertThat('model with the version in front was not shortened', m.text(), equalTo('Sonnet3.7'));
   });
+  it('keeps the model of another vendor as it is', () => {
+    const m = model();
+    m.add(JSON.stringify({ type: 'system', subtype: 'init', model: 'gpt-5.6-terra' }));
+    assertThat('model of another vendor was changed', m.text(), equalTo('gpt-5.6-terra'));
+  });
   it('ignores events that are not the start of a session', () => {
     const m = model();
     m.add(JSON.stringify({ type: 'assistant', message: { model: `claude-${randomUUID()}` } }));
