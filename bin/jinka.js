@@ -27,6 +27,7 @@ import { Throttled } from '../src/throttled.js';
 import { Keys } from '../src/keys.js';
 import { Wheel } from '../src/wheel.js';
 import { Legend } from '../src/legend.js';
+import { Release } from '../src/release.js';
 import { Tokens } from '../src/tokens.js';
 import { Crew } from '../src/crew.js';
 import { Jobs } from '../src/jobs.js';
@@ -94,6 +95,7 @@ const quota = new Quota();
 const crew = new Crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
 const jobs = new Jobs(new Genie(new (engine === 'codex' ? Codex : Claude)(new Agent(agent), values.model, values.effort, resolve(values.skill)), new Disk(dir, resolve(values.logs), resolve(values.memory), crew), new Meters([tokens, engine === 'codex' ? new Rollouts(quota, join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions')) : quota])));
 const freeze = new Freeze(crew, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
+const release = new Release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const start = Date.now();
 const screen = new Summarized(
   process.stdout.isTTY
@@ -101,13 +103,16 @@ const screen = new Summarized(
       process.stdout,
       crew,
       new Status(start, jobs, agent, values.model, tokens, quota),
-      new Legend(freeze, pkg.version)
+      new Legend(freeze, release)
     )
     : new Log(process.stdout),
   new Summary(start, pkg.version, jobs, { agent, model: values.model, effort: values.effort, wishes: dir }),
   process.stdout
 );
 process.on('exit', () => screen.close());
+if (process.stdout.isTTY) {
+  release.check();
+}
 const quit = (code) => {
   screen.close();
   process.stdout.write('', () => process.stderr.write('', () => process.exit(code)));
