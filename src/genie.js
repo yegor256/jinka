@@ -4,9 +4,8 @@
 import { createInterface } from 'node:readline';
 import { event } from './event.js';
 import { tokens } from './tokens.js';
-import { model } from './model.js';
 
-export const genie = (engine, disk, meter) => Object.freeze({
+export const genie = (engine, disk, meter, model) => Object.freeze({
   run: async (wish, row, signal) => {
     const prompt = [
       'Make this wish come true, working on your own without asking any questions:',
