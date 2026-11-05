@@ -5,7 +5,9 @@
 docker:
   image: yegor256/python
 install: |
-  sudo /usr/bin/install-node.sh
+  curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash -
+  sudo apt-get install --yes nodejs
+  node --version
 merge:
   script: |-
     npm install
