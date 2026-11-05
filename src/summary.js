@@ -18,7 +18,7 @@ export class Summary {
       '---',
       `jinka ${this.version} finished in ${new Duration(Date.now() - this.start).hours()}`,
       `agent: ${this.setup.agent}, model: ${this.setup.model === '' ? 'default' : this.setup.model}, effort: ${this.setup.effort === '' ? 'default' : this.setup.effort}`,
-      `sessions finished: ${this.jobs.text()}`,
+      `wishes came true: ${this.jobs.text()}`,
       `wishes remained in ${this.setup.wishes.startsWith(`${homedir()}${sep}`) ? `~${this.setup.wishes.slice(homedir().length)}` : this.setup.wishes}: ${existsSync(this.setup.wishes) ? readdirSync(this.setup.wishes, { recursive: true, withFileTypes: true }).filter((f) => f.isFile() && f.name.endsWith('.md')).length : 0}`,
       ''
     ].join('\n');

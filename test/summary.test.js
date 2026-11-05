@@ -24,11 +24,11 @@ describe('Summary', () => {
   it('shows the defaults when no model and no effort are chosen', () => {
     assertThat('defaults are not shown', new Summary(Date.now(), '0.0.2', new Jobs({ run: async () => ({ code: 0 }) }), { agent: 'codex', model: '', effort: '', wishes: join(tmpdir(), randomUUID()) }).text(), containsString('\nagent: codex, model: default, effort: default\n'));
   });
-  it('shows how many sessions finished', async () => {
+  it('shows how many wishes came true', async () => {
     const jobs = new Jobs({ run: async () => ({ code: 0 }) });
     await jobs.run({}, { show: () => {} }, AbortSignal.timeout(1000));
     await jobs.run({}, { show: () => {} }, AbortSignal.timeout(1000));
-    assertThat('finished sessions are not shown', new Summary(Date.now(), '0.0.3', jobs, { agent: 'claude', model: 'haiku', effort: 'low', wishes: join(tmpdir(), randomUUID()) }).text(), containsString('\nsessions finished: 2\n'));
+    assertThat('wishes that came true are not shown', new Summary(Date.now(), '0.0.3', jobs, { agent: 'claude', model: 'haiku', effort: 'low', wishes: join(tmpdir(), randomUUID()) }).text(), containsString('\nwishes came true: 2\n'));
   });
   it('counts the wishes that remained in the directory', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
@@ -36,7 +36,7 @@ describe('Summary', () => {
     await writeFile(join(dir, 'a.md'), 'first');
     await writeFile(join(dir, 'deep', 'b.md'), 'second');
     await writeFile(join(dir, 'c.txt'), 'third');
-    assertThat('remaining wishes are not counted', new Summary(Date.now(), '0.0.4', new Jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir }).text(), equalTo(`---\njinka 0.0.4 finished in 00:00:00\nagent: claude, model: opus, effort: max\nsessions finished: 0\nwishes remained in ${dir}: 2\n`));
+    assertThat('remaining wishes are not counted', new Summary(Date.now(), '0.0.4', new Jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir }).text(), equalTo(`---\njinka 0.0.4 finished in 00:00:00\nagent: claude, model: opus, effort: max\nwishes came true: 0\nwishes remained in ${dir}: 2\n`));
   });
   it('counts no wishes when the directory is absent', () => {
     const dir = join(tmpdir(), randomUUID());
