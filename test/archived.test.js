@@ -34,6 +34,14 @@ describe('Archived', () => {
     await new Archived(new Wish(dir, 'c.md', new Map()), dir, archive).close();
     assertThat('clashing file was overwritten', await readdir(archive), hasSize(2));
   });
+  it('closes quietly when the agent already deleted the file', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `${randomUUID()}.md`;
+    const claims = new Map([[name, true]]);
+    await new Archived(new Wish(dir, name, claims), dir, archive).close();
+    assertThat('claim was not dropped after the file vanished', claims.has(name), equalTo(false));
+  });
   it('keeps the name of the wish', () => {
     assertThat('name was changed', new Archived(new Wish('/a', 'x/y.md', new Map()), '/a', '/b').name(), equalTo('x/y.md'));
   });

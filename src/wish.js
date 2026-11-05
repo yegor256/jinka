@@ -20,7 +20,7 @@ export class Wish {
     return 'which will be deleted once you exit with code zero';
   }
   async close() {
-    await rm(join(this.dir, this.path));
+    await rm(join(this.dir, this.path), { force: true });
     this.claims.delete(this.path);
   }
   free() {

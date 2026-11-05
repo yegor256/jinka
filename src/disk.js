@@ -15,6 +15,7 @@ export class Disk {
   lines(wish) {
     return [
       `The wish is written in the file ${join(this.wishes, wish.name())}, ${wish.fate()}.`,
+      'Never delete, move, or rename the file of this wish yourself, even after you split it into smaller wishes, since Jinka takes care of it.',
       `All wishes live in the directory ${this.wishes}, and you may add new wishes there as Markdown files.`,
       `If this wish is an atomic job that involves no other jobs, make it come true yourself;`,
       `otherwise, do not do it yourself, but split it into smaller wishes`,

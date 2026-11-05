@@ -25,6 +25,9 @@ describe('Disk', () => {
   it('asks the agent to start names of new wish files with a small letter', () => {
     assertThat('small first letter was not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
   });
+  it('forbids the agent to delete the file of its own wish', () => {
+    assertThat('deletion of the wish file was not forbidden', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never delete, move, or rename the file of this wish yourself'));
+  });
   it('asks the agent to work in git worktrees', () => {
     assertThat('git worktrees were not demanded', new Disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(new Wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('do all your work inside a separate Git worktree'));
   });

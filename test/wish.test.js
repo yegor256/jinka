@@ -26,6 +26,13 @@ describe('Wish', () => {
     await new Wish(dir, 'b.md', new Map([['b.md', true]])).close();
     assertThat('file was not deleted', await readdir(dir), empty());
   });
+  it('closes quietly when the agent already deleted its file', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `${randomUUID()}.md`;
+    const claims = new Map([[name, true]]);
+    await new Wish(dir, name, claims).close();
+    assertThat('claim was not dropped after the file vanished', claims.has(name), equalTo(false));
+  });
   it('drops its claim on close', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const claims = new Map([['c.md', true]]);
