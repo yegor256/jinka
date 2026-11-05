@@ -4,12 +4,12 @@
 import { styleText } from 'node:util';
 
 export class Legend {
-  constructor(freeze, version) {
+  constructor(freeze, release) {
     this.freeze = freeze;
-    this.version = version;
+    this.release = release;
   }
   text() {
-    return `${this.#keys()}\t${this.version}`;
+    return `${this.#keys()}\t${this.release.text()}`;
   }
   #keys() {
     return this.freeze.active()
