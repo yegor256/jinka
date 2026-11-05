@@ -6,17 +6,10 @@ import { assertThat, equalTo, matchesPattern } from 'hamjest';
 import { log } from '../src/log.js';
 
 describe('log', () => {
-  it('prints every change as a plain line', () => {
+  it('prints nothing about a thread', () => {
     const chunks = [];
-    const text = randomUUID();
-    log({ write: (c) => chunks.push(c) }).row(2).show(`a.md\t${text}`);
-    assertThat('change was not printed', chunks.join(''), equalTo(`[3] a.md  ${text}\n`));
-  });
-  it('prints a change without colors', () => {
-    const chunks = [];
-    const text = randomUUID();
-    log({ write: (c) => chunks.push(c) }).row(1).show(`c.md\t\x1b[90m${text}\x1b[39m`);
-    assertThat('colors were printed', chunks.join(''), equalTo(`[2] c.md  ${text}\n`));
+    log({ write: (c) => chunks.push(c) }).row(2).show(`a.md\t${randomUUID()}`);
+    assertThat('thread row was printed', chunks, equalTo([]));
   });
   it('writes nothing on close', () => {
     const chunks = [];
