@@ -7,7 +7,7 @@
 First, you create `~/.jinka/wishes/Make-Me-Happy.md` file:
 
 ```text
-I wish my GitHub repositories were in good shape: `foo/bar` and `foo/bar2`.
+I wish my GitHub repository to be in good shape: `foo/bar`.
 ```
 
 Then, you install `jinka`:
@@ -16,7 +16,7 @@ Then, you install `jinka`:
 npm install -g @yegor256/jinka
 ```
 
-Finally, you run it, giving it the path to your directory with wishes:
+Finally, you run it:
 
 ```bash
 jinka
