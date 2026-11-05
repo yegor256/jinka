@@ -197,6 +197,11 @@ describe('tty', () => {
     tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmn');
     assertThat('time is not at the left edge', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], matchesPattern(/^\d{2}:\d{2}:\d{2} abcdef$/));
   });
+  it('breaks a long protocol line at a space instead of inside a word', () => {
+    const chunks = [];
+    tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('qux zorbo plim fendak');
+    assertThat('word was broken in the middle', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  plim fendak'));
+  });
   it('drops the oldest screen lines of a wrapped protocol when they do not fit', () => {
     const chunks = [];
     tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmnopqrstuvwxyz');

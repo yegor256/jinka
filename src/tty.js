@@ -17,9 +17,18 @@ export const tty = (stream, crew, status, legend) => {
     const [left, right] = text.split('\t');
     return `${left}${' '.repeat(Math.max(1, width - 1 - stripVTControlCharacters(left).length - stripVTControlCharacters(right).length))}${right}`;
   };
-  const wrap = (text, width) => (
-    stripVTControlCharacters(text).length <= width || width < 3 ? [text] : [sliceAnsi(text, 0, width), ...wrap(`  ${sliceAnsi(text, width)}`, width)]
-  );
+  const cut = (text, width) => {
+    const plain = stripVTControlCharacters(text);
+    const space = plain.lastIndexOf(' ', width);
+    return space > 2 && plain.slice(space + 1).split(' ')[0].length <= width - 2 ? [space, space + 1] : [width, width];
+  };
+  const wrap = (text, width) => {
+    if (stripVTControlCharacters(text).length <= width || width < 3) {
+      return [text];
+    }
+    const [end, start] = cut(text, width);
+    return [sliceAnsi(text, 0, end), ...wrap(`  ${sliceAnsi(text, start)}`, width)];
+  };
   const draw = () => {
     const rows = stream.rows || 24;
     const wands = crew.indexes().map((i) => [i, lines.get(i) ?? { head: '', tail: '', start: Date.now() }]);
