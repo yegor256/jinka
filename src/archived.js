@@ -20,7 +20,10 @@ export class Archived {
     return this.origin.fate();
   }
   async close() {
-    await copyFile(join(this.dir, this.origin.name()), await this.#target());
+    await access(join(this.dir, this.origin.name())).then(
+      async () => copyFile(join(this.dir, this.origin.name()), await this.#target()),
+      () => {}
+    );
     await this.origin.close();
   }
   free() {

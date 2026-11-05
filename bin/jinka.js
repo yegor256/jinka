@@ -137,6 +137,6 @@ try {
   quit(130);
 } catch (e) {
   screen.close();
-  console.error(e.message);
+  console.error(e);
   quit(1);
 }
