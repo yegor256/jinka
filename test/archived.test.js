@@ -6,24 +6,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertThat, equalTo, empty, hasSize } from 'hamjest';
-import { Archived } from '../src/archived.js';
-import { Wish } from '../src/wish.js';
+import { archived } from '../src/archived.js';
+import { wish } from '../src/wish.js';
 
-describe('Archived', () => {
+describe('archived', () => {
   it('moves the file into the archive keeping its subdirectory', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const text = randomUUID();
     await mkdir(join(dir, 'deep'));
     await writeFile(join(dir, 'deep', 'a.md'), text);
-    await new Archived(new Wish(dir, join('deep', 'a.md'), new Map()), dir, archive).close();
+    await archived(wish(dir, join('deep', 'a.md'), new Map()), dir, archive).close();
     assertThat('file was not archived', await readFile(join(archive, 'deep', 'a.md'), 'utf8'), equalTo(text));
   });
   it('removes the original file', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     await writeFile(join(dir, 'b.md'), randomUUID());
-    await new Archived(new Wish(dir, 'b.md', new Map()), dir, archive).close();
+    await archived(wish(dir, 'b.md', new Map()), dir, archive).close();
     assertThat('original was not removed', await readdir(dir), empty());
   });
   it('adds a timestamp when the name clashes', async () => {
@@ -31,7 +31,7 @@ describe('Archived', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     await writeFile(join(dir, 'c.md'), randomUUID());
     await writeFile(join(archive, 'c.md'), randomUUID());
-    await new Archived(new Wish(dir, 'c.md', new Map()), dir, archive).close();
+    await archived(wish(dir, 'c.md', new Map()), dir, archive).close();
     assertThat('clashing file was overwritten', await readdir(archive), hasSize(2));
   });
   it('closes quietly when the agent already deleted the file', async () => {
@@ -39,19 +39,19 @@ describe('Archived', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const name = `${randomUUID()}.md`;
     const claims = new Map([[name, true]]);
-    await new Archived(new Wish(dir, name, claims), dir, archive).close();
+    await archived(wish(dir, name, claims), dir, archive).close();
     assertThat('claim was not dropped after the file vanished', claims.has(name), equalTo(false));
   });
   it('keeps the name of the wish', () => {
-    assertThat('name was changed', new Archived(new Wish('/a', 'x/y.md', new Map()), '/a', '/b').name(), equalTo('x/y.md'));
+    assertThat('name was changed', archived(wish('/a', 'x/y.md', new Map()), '/a', '/b').name(), equalTo('x/y.md'));
   });
   it('releases the claim of the wish on free', () => {
     const claims = new Map([['e.md', true]]);
-    new Archived(new Wish('/a', 'e.md', claims), '/a', '/b').free();
+    archived(wish('/a', 'e.md', claims), '/a', '/b').free();
     assertThat('claim was not released', claims.get('e.md'), equalTo(false));
   });
   it('keeps the fate of the wish', () => {
-    const wish = new Wish('/a', 'f.md', new Map());
-    assertThat('fate was changed', new Archived(wish, '/a', '/b').fate(), equalTo(wish.fate()));
+    const w = wish('/a', 'f.md', new Map());
+    assertThat('fate was changed', archived(w, '/a', '/b').fate(), equalTo(w.fate()));
   });
 });

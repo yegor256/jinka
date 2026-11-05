@@ -3,19 +3,19 @@
 
 import { randomUUID } from 'node:crypto';
 import { assertThat, hasItem, equalTo } from 'hamjest';
-import { Protocol } from '../src/protocol.js';
+import { protocol } from '../src/protocol.js';
 
-describe('Protocol', () => {
+describe('protocol', () => {
   it('sends an informational message to the screen', () => {
     const lines = [];
     const text = randomUUID();
-    new Protocol(lines).info(text);
+    protocol(lines).info(text);
     assertThat('information did not reach the screen', lines, hasItem(equalTo(['info', text])));
   });
   it('sends a warning to the screen', () => {
     const lines = [];
     const text = randomUUID();
-    new Protocol(lines).warn(text);
+    protocol(lines).warn(text);
     assertThat('warning did not reach the screen', lines, hasItem(equalTo(['warn', text])));
   });
 });

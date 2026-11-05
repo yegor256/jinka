@@ -1,88 +1,10 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-export class Event {
-  constructor(line, count) {
-    this.line = line;
-    this.count = count;
-  }
-  text() {
-    try {
-      return this.#phrase(JSON.parse(this.line));
-    } catch {
-      return this.line.trim();
-    }
-  }
-  summary() {
-    try {
-      return this.#first(this.#final(JSON.parse(this.line)));
-    } catch {
-      return '';
-    }
-  }
-  link() {
-    try {
-      return (this.#final(JSON.parse(this.line)).match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0];
-    } catch {
-      return '';
-    }
-  }
-  #phrase(json) {
-    if (json.type === 'assistant') {
-      return (json.message?.content ?? []).map((part) => this.#part(part)).filter((p) => p !== '').join(' ');
-    }
-    if (json.type === 'result') {
-      return this.#first(String(json.result ?? json.subtype ?? ''));
-    }
-    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
-      return this.#first(String(json.item.text ?? ''));
-    }
-    if (json.type === 'item.started' && json.item?.type === 'command_execution') {
-      return this.#program(String(json.item.command ?? ''));
-    }
-    if (json.type === 'item.completed' && json.item?.type === 'file_change') {
-      return `editing ${(json.item.changes ?? []).map((c) => c.path).join(', ')}`;
-    }
-    if (json.type === 'turn.failed') {
-      return this.#first(String(json.error?.message ?? ''));
-    }
-    return '';
-  }
-  #final(json) {
-    if (json.type === 'result') {
-      return String(json.result ?? '');
-    }
-    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
-      return String(json.item.text ?? '');
-    }
-    return '';
-  }
-  #part(part) {
-    if (part.type === 'text') {
-      return this.#first(part.text);
-    }
-    if (part.type === 'tool_use') {
-      const input = part.input ?? {};
-      const phrase = this.#plain(part.name, input);
-      if (phrase !== undefined) {
-        return this.#first(phrase);
-      }
-      if (part.name === 'Bash' && input.command !== undefined) {
-        return this.#program(String(input.command));
-      }
-      return `\x1b[38;2;0;204;204m${
-        [part.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
-          .filter((p) => p !== undefined)
-          .map((p) => this.#first(String(p)))
-          .join(': ')
-      }\x1b[39m`;
-    }
-    return '';
-  }
-  #program(command) {
-    return `\x1b[38;2;0;204;204m${command.trim().split(/\s+/)[0].split('/').at(-1)}\x1b[39m (${this.count} lines)`;
-  }
-  #plain(name, input) {
+export const event = (line, count) => {
+  const first = (text) => text.split('\n').map((l) => l.trim()).find((l) => l !== '') ?? '';
+  const program = (command) => `\x1b[38;2;0;204;204m${command.trim().split(/\s+/)[0].split('/').at(-1)}\x1b[39m (${count} lines)`;
+  const plain = (name, input) => {
     const phrases = {
       Bash: () => input.description,
       Agent: () => input.description,
@@ -98,8 +20,80 @@ export class Event {
       Skill: () => input.skill && `using the skill ${input.skill}`
     };
     return Object.hasOwn(phrases, name) ? phrases[name]() || undefined : undefined;
-  }
-  #first(text) {
-    return text.split('\n').map((l) => l.trim()).find((l) => l !== '') ?? '';
-  }
-}
+  };
+  const part = (piece) => {
+    if (piece.type === 'text') {
+      return first(piece.text);
+    }
+    if (piece.type === 'tool_use') {
+      const input = piece.input ?? {};
+      const phrase = plain(piece.name, input);
+      if (phrase !== undefined) {
+        return first(phrase);
+      }
+      if (piece.name === 'Bash' && input.command !== undefined) {
+        return program(String(input.command));
+      }
+      return `\x1b[38;2;0;204;204m${
+        [piece.name, input.command ?? input.file_path ?? input.pattern ?? input.url ?? input.query ?? input.skill ?? input.description]
+          .filter((p) => p !== undefined)
+          .map((p) => first(String(p)))
+          .join(': ')
+      }\x1b[39m`;
+    }
+    return '';
+  };
+  const final = (json) => {
+    if (json.type === 'result') {
+      return String(json.result ?? '');
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
+      return String(json.item.text ?? '');
+    }
+    return '';
+  };
+  const phrase = (json) => {
+    if (json.type === 'assistant') {
+      return (json.message?.content ?? []).map((p) => part(p)).filter((p) => p !== '').join(' ');
+    }
+    if (json.type === 'result') {
+      return first(String(json.result ?? json.subtype ?? ''));
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
+      return first(String(json.item.text ?? ''));
+    }
+    if (json.type === 'item.started' && json.item?.type === 'command_execution') {
+      return program(String(json.item.command ?? ''));
+    }
+    if (json.type === 'item.completed' && json.item?.type === 'file_change') {
+      return `editing ${(json.item.changes ?? []).map((c) => c.path).join(', ')}`;
+    }
+    if (json.type === 'turn.failed') {
+      return first(String(json.error?.message ?? ''));
+    }
+    return '';
+  };
+  return Object.freeze({
+    text: () => {
+      try {
+        return phrase(JSON.parse(line));
+      } catch {
+        return line.trim();
+      }
+    },
+    summary: () => {
+      try {
+        return first(final(JSON.parse(line)));
+      } catch {
+        return '';
+      }
+    },
+    link: () => {
+      try {
+        return (final(JSON.parse(line)).match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0];
+      } catch {
+        return '';
+      }
+    }
+  });
+};

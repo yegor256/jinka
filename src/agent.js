@@ -3,13 +3,10 @@
 
 import spawn from 'cross-spawn';
 
-export class Agent {
-  constructor(command) {
-    this.command = command;
-  }
-  start(args, signal) {
+export const agent = (command) => Object.freeze({
+  start: (args, signal) => {
     const windows = process.platform === 'win32';
-    const child = spawn(this.command, args, windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' });
+    const child = spawn(command, args, windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' });
     if (windows) {
       signal.addEventListener(
         'abort',
@@ -19,4 +16,4 @@ export class Agent {
     }
     return child;
   }
-}
+});

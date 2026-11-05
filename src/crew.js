@@ -1,67 +1,62 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-export class Crew {
-  constructor(size, limit, notice) {
-    this.limit = limit;
-    this.notice = notice;
-    this.seats = new Map(Array.from({ length: size }, (_, i) => [i, { idle: false, controller: new AbortController() }]));
-    this.state = { launch: () => {}, runs: [] };
-  }
-  size() {
-    return this.seats.size;
-  }
-  indexes() {
-    return [...this.seats.keys()].sort((a, b) => a - b);
-  }
-  more() {
-    if (this.seats.size >= this.limit) {
-      this.notice.warn(`more than ${this.limit} threads are not allowed`);
-      return;
-    }
-    const index = Array.from({ length: this.limit }, (_, i) => i).find((i) => !this.seats.has(i));
-    this.seats.set(index, { idle: false, controller: new AbortController() });
-    this.state.launch(index);
-  }
-  less() {
-    const index = this.indexes().findLast((i) => this.seats.get(i).idle);
-    if (this.seats.size === 1) {
-      this.notice.warn('the last thread cannot be removed');
-    } else if (index === undefined) {
-      this.notice.warn('no idle thread can be removed right now');
-    } else {
-      this.seats.get(index).controller.abort();
-      this.seats.delete(index);
-    }
-  }
-  async run(wishes, wand, signal) {
-    this.state.launch = (index) => {
-      const seat = this.seats.get(index);
-      this.state.runs.push(
-        wand(
-          index,
-          {
-            next: async (s) => {
-              seat.idle = true;
-              try {
-                return await wishes.next(s);
-              } finally {
-                seat.idle = false;
-              }
-            }
-          },
-          AbortSignal.any([signal, seat.controller.signal])
-        )
-      );
-    };
-    this.indexes().forEach((i) => this.state.launch(i));
-    await this.#join(0);
-  }
-  async #join(from) {
-    const to = this.state.runs.length;
+export const crew = (size, limit, notice) => {
+  const seats = new Map(Array.from({ length: size }, (_, i) => [i, { idle: false, controller: new AbortController() }]));
+  const state = { launch: () => {}, runs: [] };
+  const indexes = () => [...seats.keys()].sort((a, b) => a - b);
+  const join = async (from) => {
+    const to = state.runs.length;
     if (from < to) {
-      await Promise.all(this.state.runs.slice(from, to));
-      await this.#join(to);
+      await Promise.all(state.runs.slice(from, to));
+      await join(to);
     }
-  }
-}
+  };
+  return Object.freeze({
+    size: () => seats.size,
+    indexes,
+    more: () => {
+      if (seats.size >= limit) {
+        notice.warn(`more than ${limit} threads are not allowed`);
+        return;
+      }
+      const index = Array.from({ length: limit }, (_, i) => i).find((i) => !seats.has(i));
+      seats.set(index, { idle: false, controller: new AbortController() });
+      state.launch(index);
+    },
+    less: () => {
+      const index = indexes().findLast((i) => seats.get(i).idle);
+      if (seats.size === 1) {
+        notice.warn('the last thread cannot be removed');
+      } else if (index === undefined) {
+        notice.warn('no idle thread can be removed right now');
+      } else {
+        seats.get(index).controller.abort();
+        seats.delete(index);
+      }
+    },
+    run: async (wishes, wand, signal) => {
+      state.launch = (index) => {
+        const seat = seats.get(index);
+        state.runs.push(
+          wand(
+            index,
+            {
+              next: async (s) => {
+                seat.idle = true;
+                try {
+                  return await wishes.next(s);
+                } finally {
+                  seat.idle = false;
+                }
+              }
+            },
+            AbortSignal.any([signal, seat.controller.signal])
+          )
+        );
+      };
+      indexes().forEach((i) => state.launch(i));
+      await join(0);
+    }
+  });
+};

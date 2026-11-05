@@ -3,13 +3,13 @@
 
 import { stripVTControlCharacters } from 'node:util';
 import { assertThat, equalTo, everyItem, startsWith } from 'hamjest';
-import { Logo } from '../src/logo.js';
+import { logo } from '../src/logo.js';
 
-describe('Logo', () => {
+describe('logo', () => {
   it('draws a pike in two lines', () => {
-    assertThat('pike is not drawn', new Logo().lines().map((l) => stripVTControlCharacters(l)), equalTo(['▚▄▄▙▄▄▄▄▗▄▖ ', '▞▀▀▛▀▀▀▛▀▀▀▀']));
+    assertThat('pike is not drawn', logo().lines().map((l) => stripVTControlCharacters(l)), equalTo(['▚▄▄▙▄▄▄▄▗▄▖ ', '▞▀▀▛▀▀▀▛▀▀▀▀']));
   });
   it('paints the pike in terracotta', () => {
-    assertThat('pike is not painted terracotta', new Logo().lines(), everyItem(startsWith('\x1b[38;2;215;119;87m')));
+    assertThat('pike is not painted terracotta', logo().lines(), everyItem(startsWith('\x1b[38;2;215;119;87m')));
   });
 });

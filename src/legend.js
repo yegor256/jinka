@@ -3,17 +3,13 @@
 
 import { styleText } from 'node:util';
 
-export class Legend {
-  constructor(freeze, release) {
-    this.freeze = freeze;
-    this.release = release;
-  }
-  text() {
-    return `${this.#keys()}\t${this.release.text()}`;
-  }
-  #keys() {
-    return this.freeze.active()
+export const legend = (freeze, release) => {
+  const keys = () => (
+    freeze.active()
       ? `keys: ${styleText('bgGray', 'C', { validateStream: false })} - to continue`
-      : `keys: ${styleText('bgGray', 'F', { validateStream: false })} - to finish and quit, ${styleText('bgGray', '+/-', { validateStream: false })} to add threads`;
-  }
-}
+      : `keys: ${styleText('bgGray', 'F', { validateStream: false })} - to finish and quit, ${styleText('bgGray', '+/-', { validateStream: false })} to add threads`
+  );
+  return Object.freeze({
+    text: () => `${keys()}\t${release.text()}`
+  });
+};

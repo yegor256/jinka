@@ -4,37 +4,26 @@
 import { copyFile, mkdir, access } from 'node:fs/promises';
 import { join, dirname, extname } from 'node:path';
 
-export class Archived {
-  constructor(origin, dir, archive) {
-    this.origin = origin;
-    this.dir = dir;
-    this.archive = archive;
-  }
-  name() {
-    return this.origin.name();
-  }
-  async text() {
-    return this.origin.text();
-  }
-  fate() {
-    return this.origin.fate();
-  }
-  async close() {
-    await access(join(this.dir, this.origin.name())).then(
-      async () => copyFile(join(this.dir, this.origin.name()), await this.#target()),
-      () => {}
+export const archived = (origin, dir, archive) => {
+  const target = async () => {
+    const path = join(archive, origin.name());
+    await mkdir(dirname(path), { recursive: true });
+    return access(path).then(
+      () => `${path.slice(0, path.length - extname(path).length)}-${Date.now()}${extname(path)}`,
+      () => path
     );
-    await this.origin.close();
-  }
-  free() {
-    this.origin.free();
-  }
-  async #target() {
-    const target = join(this.archive, this.origin.name());
-    await mkdir(dirname(target), { recursive: true });
-    return access(target).then(
-      () => `${target.slice(0, target.length - extname(target).length)}-${Date.now()}${extname(target)}`,
-      () => target
-    );
-  }
-}
+  };
+  return Object.freeze({
+    name: () => origin.name(),
+    text: async () => origin.text(),
+    fate: () => origin.fate(),
+    close: async () => {
+      await access(join(dir, origin.name())).then(
+        async () => copyFile(join(dir, origin.name()), await target()),
+        () => {}
+      );
+      await origin.close();
+    },
+    free: () => origin.free()
+  });
+};
