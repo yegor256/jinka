@@ -72,9 +72,9 @@ export const tty = (stream, crew, status, legend) => {
     lines.set(index, { head, tail, start: head === line.head ? line.start : Date.now() });
     paint();
   };
-  const note = (text) => {
+  const note = (level, text) => {
     notes.push(
-      `${new Date().toTimeString().slice(0, 8)} ${text.replace(/https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/(?:issues|pull)\/(\d+)/g, (url, repo, number) => `\x1b]8;;${url}\x07\x1b[38;2;106;113;247m${repo}#${number}\x1b[39m\x1b]8;;\x07`)}`
+      `${level === 'warn' ? `\x1b[38;2;255;135;0m${new Date().toTimeString().slice(0, 8)}\x1b[39m` : new Date().toTimeString().slice(0, 8)} ${text.replace(/https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/(?:issues|pull)\/(\d+)/g, (url, repo, number) => `\x1b]8;;${url}\x07\x1b[38;2;106;113;247m${repo}#${number}\x1b[39m\x1b]8;;\x07`)}`
     );
     if (view.depth > 0) {
       view.depth += wrap(notes.at(-1), stream.columns || 80).length;
@@ -83,7 +83,7 @@ export const tty = (stream, crew, status, legend) => {
   };
   return Object.freeze({
     row: (index) => row({ push: ([i, text]) => update(i, text) }, index),
-    notice: () => protocol({ push: ([level, text]) => note(level === 'warn' ? `\x1b[38;2;255;135;0m${text}\x1b[39m` : text) }),
+    notice: () => protocol({ push: ([level, text]) => note(level, text) }),
     up: () => {
       view.depth += 1;
       redraw();
