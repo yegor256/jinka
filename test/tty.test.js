@@ -19,50 +19,50 @@ import { jobs } from '../src/jobs.js';
 describe('tty', () => {
   it('draws the status line, an empty line, one line per wand, and the separator', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(3, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(1).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(3, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(1).show('a.md\tworking');
     assertThat('separator is not under the wands', stripVTControlCharacters(chunks.join('')).split('\n')[5], equalTo('-'.repeat(10)));
   });
   it('shows the version at the right end of the legend line', () => {
     const chunks = [];
     const version = randomUUID();
-    tty({ columns: 121, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => version })).row(0).show('a.md\tworking');
+    tty({ columns: 121, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => version })).row(0).show('a.md\tworking');
     assertThat('version is not at the right end of the legend line', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), equalTo(`keys: F - to finish and quit, +/- to add threads${' '.repeat(36)}${version}`));
   });
   it('leaves the last column of the legend line empty', () => {
     const chunks = [];
-    tty({ columns: 94, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '7.3.9' })).row(0).show('d.md\tworking');
+    tty({ columns: 94, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '7.3.9' })).row(0).show('d.md\tworking');
     assertThat('version touches the last column, where the erase wipes it', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1).length, equalTo(93));
   });
   it('leaves an empty line under the status line', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('line under the status line is not empty', stripVTControlCharacters(chunks.join('')).split('\n')[1].replace('▞▀▀▛▀▀▀▛▀▀▀▀', '').trim(), equalTo(''));
   });
   it('draws the top of the pike in the top left corner', () => {
     const chunks = [];
-    tty({ columns: 97, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('b.md\tworking');
+    tty({ columns: 97, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('b.md\tworking');
     assertThat('top of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[0], startsWith('▚▄▄▙▄▄▄▄▗▄▖  up:'));
   });
   it('draws the bottom of the pike in the top left corner', () => {
     const chunks = [];
-    tty({ columns: 113, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('c.md\tworking');
+    tty({ columns: 113, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'haiku', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('c.md\tworking');
     assertThat('bottom of the pike is not in the corner', stripVTControlCharacters(chunks.join('')).split('\n')[1], equalTo('▞▀▀▛▀▀▀▛▀▀▀▀'));
   });
   it('shows the text of a row', () => {
     const chunks = [];
     const text = randomUUID();
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${text}`);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${text}`);
     assertThat('row text was not drawn', chunks.join(''), containsString(text));
   });
   it('shows only the newest protocol lines that fit', () => {
     const chunks = [];
-    const v = tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     ['first', 'second', 'third'].forEach((t) => v.notice().info(t));
     assertThat('old protocol line was not dropped', chunks.at(-1), not(containsString('first')));
   });
   it('cuts lines to the terminal width', () => {
     const chunks = [];
-    tty({ columns: 30, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${'x'.repeat(100)}`);
+    tty({ columns: 30, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${'x'.repeat(100)}`);
     assertThat(
       'line is wider than the terminal',
       stripVTControlCharacters(chunks.join('')).split('\n').map((l) => l.length),
@@ -72,17 +72,17 @@ describe('tty', () => {
   it('draws full lines when the terminal width is unknown', () => {
     const chunks = [];
     const text = randomUUID();
-    tty({ columns: 0, rows: 0, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${text}`);
+    tty({ columns: 0, rows: 0, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`a.md\t${text}`);
     assertThat('line was cut to nothing', chunks.join(''), containsString(text));
   });
   it('switches to the alternate buffer and hides the cursor', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('alternate buffer was not entered', chunks[0], startsWith('\x1b[?1049h\x1b[?25l'));
   });
   it('redraws the whole layout from the top left corner', () => {
     const chunks = [];
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(4, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(4, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.row(0).show('a.md\tfirst');
     v.row(0).show('a.md\tsecond');
     assertThat('cursor did not move home', chunks.at(-1), startsWith('\x1b[H'));
@@ -90,19 +90,19 @@ describe('tty', () => {
   it('redraws the layout when the terminal is resized', () => {
     const chunks = [];
     const stream = Object.assign(new EventEmitter(), { columns: 80, rows: 24, write: (c) => chunks.push(c) });
-    tty(stream, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty(stream, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     stream.columns = 8;
     stream.emit('resize');
     assertThat('layout was not redrawn to the new width', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], equalTo('a.md   0'));
   });
   it('shows an elapsed timer', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('timer was not shown', chunks.join(''), containsString('00:00'));
   });
   it('restores the normal buffer and the cursor on close', () => {
     const chunks = [];
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.row(0).show('a.md\tworking');
     v.close();
     assertThat('normal buffer was not restored', chunks, hasItem('\x1b[?1007l\x1b[?25h\x1b[?1049l'));
@@ -110,7 +110,7 @@ describe('tty', () => {
   it('prints the protocol lines that no longer fit the screen on close', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 6, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     [text, 'second', 'third'].forEach((t) => v.notice().info(t));
     v.close();
     assertThat('old protocol line was not printed on close', chunks.at(-1), containsString(`${text}\n`));
@@ -118,19 +118,19 @@ describe('tty', () => {
   it('prints the protocol right after the normal buffer comes back', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.notice().info(text);
     v.close();
     assertThat('protocol was not printed after the normal buffer', chunks.slice(chunks.indexOf('\x1b[?1007l\x1b[?25h\x1b[?1049l') + 1).join(''), containsString(text));
   });
   it('writes nothing on close when it never drew', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).close();
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).close();
     assertThat('closed screen wrote something', chunks, equalTo([]));
   });
   it('restores the normal buffer only once', () => {
     const chunks = [];
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'sonnet', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.row(0).show('a.md\tworking');
     v.close();
     v.close();
@@ -138,14 +138,14 @@ describe('tty', () => {
   });
   it('pins the legend to the last row of the terminal', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 17, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(2, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }))
+    tty({ columns: 80, rows: 17, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(2, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }))
       .row(0)
       .show('a.md\tworking');
     assertThat('legend is not on the last row', stripVTControlCharacters(chunks.at(-1)).split('\n')[16], startsWith('keys: F - to finish and quit, +/- to add threads '));
   });
   it('leaves an empty line above the legend', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 7, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }))
+    tty({ columns: 80, rows: 7, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }))
       .notice()
       .info(randomUUID());
     assertThat('line above the legend is not empty', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo(''));
@@ -154,13 +154,13 @@ describe('tty', () => {
     const chunks = [];
     const f = freeze(crew(3, 16, protocol([])), protocol([]), () => {});
     f.on();
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(f, { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(f, { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('continue key is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n').at(-1), startsWith('keys: C - to continue '));
   });
   it('draws one more line when the crew grows', () => {
     const chunks = [];
     const d = crew(2, 16, protocol([]));
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, d, status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(d, protocol([]), row([], 0), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, d, status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(d, protocol([]), row([], 0), () => {}), { text: () => '0.0.0' }));
     d.more();
     v.row(2).show('c.md\tworking');
     assertThat('new line was not drawn', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], startsWith('c.md'));
@@ -168,54 +168,54 @@ describe('tty', () => {
   it('shows a notice below the separator', () => {
     const chunks = [];
     const text = randomUUID();
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(text);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(text);
     assertThat('notice was not drawn', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], matchesPattern(new RegExp(`^\\d{2}:\\d{2}:\\d{2} ${text}$`)));
   });
   it('cuts a line without counting the escape codes', () => {
     const chunks = [];
-    tty({ columns: 11, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 11, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('escape codes were counted as visible', chunks.at(-1).split('\n').at(-1), startsWith('\x1b[2Kkeys: \x1b[100mF\x1b[49m - t'));
   });
   it('resets the style at the end of every line', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(1).show('b.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(1).show('b.md\tworking');
     assertThat('style was not reset after a line', chunks.at(-1).split('\n').slice(0, -1), everyItem(endsWith('\x1b[0m')));
   });
   it('wraps a long protocol line instead of cutting it', () => {
     const chunks = [];
     const text = `${randomUUID()}${randomUUID()}`;
-    tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(text);
+    tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(text);
     assertThat('protocol line was cut', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(4, 10).map((l, i) => (i === 0 ? l.slice(9) : l.slice(2))).join(''), equalTo(text));
   });
   it('indents the continuation of a wrapped protocol line by two spaces', () => {
     const chunks = [];
-    tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmn');
+    tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmn');
     assertThat('continuation is not indented', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  ghijklmn'));
   });
   it('keeps the time of a wrapped protocol line at the left edge', () => {
     const chunks = [];
-    tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmn');
+    tty({ columns: 15, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmn');
     assertThat('time is not at the left edge', stripVTControlCharacters(chunks.at(-1)).split('\n')[4], matchesPattern(/^\d{2}:\d{2}:\d{2} abcdef$/));
   });
   it('breaks a long protocol line at a space instead of inside a word', () => {
     const chunks = [];
-    tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('qux zorbo plim fendak');
+    tty({ columns: 20, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('qux zorbo plim fendak');
     assertThat('word was broken in the middle', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  plim fendak'));
   });
   it('drops the oldest screen lines of a wrapped protocol when they do not fit', () => {
     const chunks = [];
-    tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmnopqrstuvwxyz');
+    tty({ columns: 15, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info('abcdefghijklmnopqrstuvwxyz');
     assertThat('newest piece of the protocol is not shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[5], equalTo('  tuvwxyz'));
   });
   it('dont show the number of a thread', () => {
     const chunks = [];
     const name = `${randomUUID()}.md`;
-    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${name}\tworking`);
+    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${name}\tworking`);
     assertThat('thread number was shown', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], startsWith(name));
   });
   it('aligns the timers when a head is colored', () => {
     const chunks = [];
-    const v = tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(2, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(2, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(2, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.row(0).show('\x1b[90midle\x1b[39m\twaiting');
     v.row(1).show('abcdefgh.md\tworking');
     assertThat('timers are not aligned', stripVTControlCharacters(chunks.at(-1)).split('\n').slice(2, 4).map((l) => l.indexOf('00:00')), equalTo([14, 14]));
@@ -223,51 +223,51 @@ describe('tty', () => {
   it('pads the timer of a thread with spaces on the left to six symbols', () => {
     const chunks = [];
     const name = `${randomUUID()}.md`;
-    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${name}\tworking`);
+    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${name}\tworking`);
     assertThat('timer was not padded to six symbols', stripVTControlCharacters(chunks.at(-1)).split('\n')[2], startsWith(`${name}   00:00  `));
   });
   it('turns a link to a pull request into a short blue clickable hyperlink', () => {
     const chunks = [];
     const url = `https://github.com/y-${Math.floor(Math.random() * 1000)}/r.x/pull/${Math.floor(Math.random() * 1000)}`;
-    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(`Merged ü ${url}`);
+    tty({ columns: 200, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(`Merged ü ${url}`);
     assertThat('link was not blue and clickable', chunks.at(-1), containsString(`\x1b]8;;${url}\x07\x1b[38;2;106;113;247m${url.slice(19).replace('/pull/', '#')}\x1b[39m\x1b]8;;\x07`));
   });
   it('paints a warning orange', () => {
     const chunks = [];
     const text = randomUUID();
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
     assertThat('time of a warning was not orange', chunks.at(-1), matchesPattern(new RegExp(`\x1b\\[38;2;255;135;0m\\d{2}:\\d{2}:\\d{2}\x1b\\[39m ${text}`)));
   });
   it('dont paint the text of a warning orange', () => {
     const chunks = [];
     const text = randomUUID();
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
     assertThat('text of a warning was orange', chunks.at(-1), not(containsString(`\x1b[38;2;255;135;0m${text}`)));
   });
   it('dont paint an informational message orange', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(randomUUID());
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().info(randomUUID());
     assertThat('information was orange', chunks.at(-1), not(containsString('\x1b[38;2;255;135;0m')));
   });
   it('paints the timer of a running thread green', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${randomUUID()}.md\tworking`);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`${randomUUID()}.md\tworking`);
     assertThat('timer of a running thread was not green', chunks.at(-1), containsString('\x1b[32m 00:00\x1b[39m'));
   });
   it('paints the timer of an idle thread gray', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`\x1b[90midle\x1b[39m\t${randomUUID()}`);
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show(`\x1b[90midle\x1b[39m\t${randomUUID()}`);
     assertThat('timer of an idle thread was not gray', chunks.at(-1), containsString('\x1b[90m 00:00\x1b[39m'));
   });
   it('turns the mouse wheel into arrow keys', () => {
     const chunks = [];
-    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).row(0).show('a.md\tworking');
     assertThat('alternate scroll mode was not turned on', chunks[0], containsString('\x1b[?1007h'));
   });
   it('shows an older protocol line after scrolling up', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     [text, 'second', 'third'].forEach((t) => v.notice().info(t));
     v.up();
     assertThat('older protocol line was not shown', chunks.at(-1), containsString(text));
@@ -275,7 +275,7 @@ describe('tty', () => {
   it('hides an older protocol line after scrolling back down', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     [text, 'second', 'third'].forEach((t) => v.notice().info(t));
     v.up();
     v.down();
@@ -284,7 +284,7 @@ describe('tty', () => {
   it('stops scrolling up at the oldest protocol line', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     ['first', 'second', text].forEach((t) => v.notice().info(t));
     Array.from({ length: 7 }).forEach(() => v.up());
     v.down();
@@ -293,7 +293,7 @@ describe('tty', () => {
   it('keeps the scrolled protocol still when a new line arrives', () => {
     const chunks = [];
     const text = randomUUID();
-    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 8, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     [text, 'second', 'third'].forEach((t) => v.notice().info(t));
     v.up();
     v.notice().info('fourth');
@@ -301,7 +301,7 @@ describe('tty', () => {
   });
   it('writes nothing on scroll when it never drew', () => {
     const chunks = [];
-    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
+    const v = tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), { text: () => '0' }, jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' }));
     v.up();
     v.down();
     assertThat('scroll drew a screen that was never shown', chunks, equalTo([]));
