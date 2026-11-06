@@ -45,6 +45,13 @@ describe('genie', () => {
     await genie(claude(agent(await script(0).path()), '', '', '/plugin'), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'o.md', new Map()), row(lines, 0), AbortSignal.timeout(5000));
     assertThat('agent was not asked for a summary', lines.map((l) => l[1]).join('\n'), containsString('single plain sentence'));
   });
+  it('asks the agent to finish with a json object', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const lines = [];
+    await writeFile(join(dir, 'p.md'), randomUUID());
+    await genie(claude(agent(await script(0).path()), '', '', '/plugin'), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'p.md', new Map()), row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('agent was not asked for json', lines.map((l) => l[1]).join('\n'), containsString('JSON object'));
+  });
   it('asks the agent to name the url of the issue or pull request', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const lines = [];

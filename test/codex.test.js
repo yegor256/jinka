@@ -4,6 +4,7 @@
 import { text } from 'node:stream/consumers';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { readFile } from 'node:fs/promises';
 import { assertThat, containsString, endsWith, equalTo, not } from 'hamjest';
 import { codex } from '../src/codex.js';
 import { agent } from '../src/agent.js';
@@ -57,6 +58,15 @@ describe('codex', () => {
     const child = codex(agent(await script(0).path()), '', '', '/plugin').start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('effort was passed without being given', await text(child.stdout), not(containsString('model_reasoning_effort')));
+  });
+  it('demands the final answer to match the json schema in a file', async () => {
+    const child = codex(agent(await script(0).path()), '', '', `/${randomUUID()}`).start([], AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat(
+      'json schema file was not demanded',
+      await readFile(JSON.parse((await text(child.stdout)).split('\n').at(-3)).message.content[0].text.match(/--output-schema (\S+)/)[1], 'utf8'),
+      containsString('"summary"')
+    );
   });
   it('tells the agent where the skills live', () => {
     const plugin = `/${randomUUID()}`;

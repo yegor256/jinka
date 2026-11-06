@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: MIT
 
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const codex = (agent, model, effort, plugin) => {
   const full = (args) => [
     'exec', '--json',
     '--dangerously-bypass-approvals-and-sandbox', '--skip-git-repo-check',
+    '--output-schema', fileURLToPath(new URL('answer.json', import.meta.url)),
     ...args,
     ...(model === '' ? [] : ['--model', model]),
     ...(effort === '' ? [] : ['--config', `model_reasoning_effort=${effort}`]),

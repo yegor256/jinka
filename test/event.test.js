@@ -192,4 +192,28 @@ describe('event', () => {
     const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_9', type: 'agent_message', text: `Closed it\n${url}` } });
     assertThat('link was not found in a codex message', event(line, 7).link(), equalTo(url));
   });
+  it('summarizes the final result by the summary field of its json', () => {
+    const text = `Fixed the parser ${Math.random()} ü`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: JSON.stringify({ summary: text, link: '' }) });
+    assertThat('summary field was not used', event(line, 7).summary(), equalTo(text));
+  });
+  it('summarizes a message of codex by the summary field of its json', () => {
+    const text = `Closed the issue ${Math.random()} ж`;
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_4', type: 'agent_message', text: JSON.stringify({ summary: text, link: '' }) } });
+    assertThat('summary field of codex was not used', event(line, 7).summary(), equalTo(text));
+  });
+  it('summarizes a final result that is json without a summary by its text', () => {
+    const text = `${Math.floor(Math.random() * 1000)}`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: text });
+    assertThat('json without a summary was lost', event(line, 7).summary(), equalTo(text));
+  });
+  it('takes the link from the link field of the json, not from the summary', () => {
+    const url = `https://github.com/w-${Math.floor(Math.random() * 1000)}/ü/pull/${Math.floor(Math.random() * 1000)}`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: JSON.stringify({ summary: 'Followed https://github.com/a/b/issues/1 to fix it', link: url }) });
+    assertThat('link field was not used', event(line, 7).link(), equalTo(url));
+  });
+  it('finds no link when the link field of the json is not a url', () => {
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: JSON.stringify({ summary: 'See https://github.com/a/b/issues/5', link: 'none ж' }) });
+    assertThat('link was found where the field had none', event(line, 7).link(), equalTo(''));
+  });
 });
