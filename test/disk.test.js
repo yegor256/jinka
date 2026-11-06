@@ -83,6 +83,10 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('scheduling of future work was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never schedule work for later'));
   });
+  it('forbids the agent to write a new wish similar to an existing one', async () => {
+    const dir = await directory(1);
+    assertThat('duplicate wishes were not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never write a new wish if a similar wish already exists'));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
