@@ -63,10 +63,31 @@ describe('crew', () => {
     assertThat('crew did not shrink', c.indexes(), equalTo([0, 1]));
     await run;
   });
-  it('tells that no idle wand can retire while every wand is busy', () => {
+  it('retires a wand that rests after its wish', async () => {
+    const c = crew(2, 16, protocol([]));
+    const run = c.run(
+      { next: async () => ({ name: () => 'rest.md', free: () => {} }) },
+      async (i, wishes, s) => { (await wishes.next(s)).free(); await setTimeout(1000, undefined, { signal: s }).catch(() => {}); },
+      AbortSignal.timeout(300)
+    );
+    await setTimeout(20);
+    c.less();
+    assertThat('resting wand was not retired', c.indexes(), equalTo([0]));
+    await run;
+  });
+  it('explains which wishes keep every wand busy', async () => {
     const notes = [];
-    crew(3, 16, protocol(notes)).less();
-    assertThat('busy wands were not reported', notes, equalTo([['warn', 'no idle thread can be removed right now']]));
+    const c = crew(2, 16, protocol(notes));
+    const names = ['qüx-7.md', 'Ж/zork.md'];
+    const run = c.run(
+      { next: async () => ({ name: () => names.shift() }) },
+      async (i, wishes, s) => { await wishes.next(s); await setTimeout(1000, undefined, { signal: s }).catch(() => {}); },
+      AbortSignal.timeout(300)
+    );
+    await setTimeout(20);
+    c.less();
+    await run;
+    assertThat('busy wands were not explained', notes, equalTo([['warn', 'cannot remove a thread, because all 2 threads are working on wishes (qüx-7.md, Ж/zork.md), and a thread can be removed only when it holds no wish']]));
   });
   it('tells that the last wand cannot retire', async () => {
     const notes = [];

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 export const crew = (size, limit, notice) => {
-  const seats = new Map(Array.from({ length: size }, (_, i) => [i, { idle: false, controller: new AbortController() }]));
+  const seats = new Map(Array.from({ length: size }, (_, i) => [i, { wish: '', controller: new AbortController() }]));
   const state = { launch: () => {}, runs: [] };
   const indexes = () => [...seats.keys()].sort((a, b) => a - b);
   const join = async (from) => {
@@ -21,15 +21,15 @@ export const crew = (size, limit, notice) => {
         return;
       }
       const index = Array.from({ length: limit }, (_, i) => i).find((i) => !seats.has(i));
-      seats.set(index, { idle: false, controller: new AbortController() });
+      seats.set(index, { wish: '', controller: new AbortController() });
       state.launch(index);
     },
     less: () => {
-      const index = indexes().findLast((i) => seats.get(i).idle);
+      const index = indexes().findLast((i) => seats.get(i).wish === '');
       if (seats.size === 1) {
         notice.warn('the last thread cannot be removed');
       } else if (index === undefined) {
-        notice.warn('no idle thread can be removed right now');
+        notice.warn(`cannot remove a thread, because all ${seats.size} threads are working on wishes (${indexes().map((i) => seats.get(i).wish).join(', ')}), and a thread can be removed only when it holds no wish`);
       } else {
         seats.get(index).controller.abort();
         seats.delete(index);
@@ -43,12 +43,19 @@ export const crew = (size, limit, notice) => {
             index,
             {
               next: async (s) => {
-                seat.idle = true;
-                try {
-                  return await wishes.next(s);
-                } finally {
-                  seat.idle = false;
-                }
+                const wish = await wishes.next(s);
+                seat.wish = wish.name();
+                return Object.freeze({
+                  ...wish,
+                  close: async () => {
+                    await wish.close();
+                    seat.wish = '';
+                  },
+                  free: () => {
+                    wish.free();
+                    seat.wish = '';
+                  }
+                });
               }
             },
             AbortSignal.any([signal, seat.controller.signal])
