@@ -28,4 +28,8 @@ describe('agent', () => {
     const arg = `${randomUUID()} ${randomUUID()}`;
     assertThat('argument with spaces was not quoted', agent('x').command([arg]), equalTo(`x '${arg}'`));
   });
+  it('leaves the backslashes of a Windows path unquoted in the command', () => {
+    const command = `C:\\${randomUUID()}\\agent.cmd`;
+    assertThat('Windows path was quoted', agent(command).command([]), equalTo(command));
+  });
 });
