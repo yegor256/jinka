@@ -17,6 +17,7 @@ import { disk } from '../src/disk.js';
 import { tty } from '../src/tty.js';
 import { colorless } from '../src/colorless.js';
 import { log } from '../src/log.js';
+import { pile } from '../src/pile.js';
 import { status } from '../src/status.js';
 import { quota } from '../src/quota.js';
 import { rollouts } from '../src/rollouts.js';
@@ -113,7 +114,7 @@ const screen = summarized(
     ? tty(
       values.color && !process.env.NO_COLOR ? process.stdout : colorless(process.stdout),
       c,
-      status(start, j, a, values.model, t, q),
+      status(start, pile(dir), j, a, values.model, t, q),
       legend(f, r)
     )
     : log(process.stdout),
