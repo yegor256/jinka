@@ -56,4 +56,12 @@ describe('claude', () => {
   it('adds no lines to the prompt', () => {
     assertThat('lines were added to the prompt', claude(agent(randomUUID()), '', '', `/${randomUUID()}`).lines(), equalTo([]));
   });
+  it('renders the same command line that it starts', async () => {
+    const path = await script(0).path();
+    const engine = claude(agent(path), randomUUID(), randomUUID(), `/${randomUUID()}`);
+    const args = ['--add-dir', `/${randomUUID()}`];
+    const child = engine.start(args, AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat('command line differs from the one started', engine.command(args), equalTo(`${path} ${JSON.parse((await text(child.stdout)).split('\n').at(-3)).message.content[0].text}`));
+  });
 });

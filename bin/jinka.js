@@ -100,7 +100,9 @@ const t = tokens();
 const q = quota();
 const c = crew(values.threads, limit, { warn: (text) => screen.notice().warn(text) });
 const sessions = join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions');
-const j = jobs(genie((engine === 'codex' ? codex : claude)(agent(a), values.model, values.effort, resolve(values.skill)), disk(dir, resolve(values.logs), resolve(values.memory), c), meters([t, engine === 'codex' ? rollouts(q, sessions) : q]), engine === 'codex' ? () => recorded(model(), sessions) : model));
+const e = (engine === 'codex' ? codex : claude)(agent(a), values.model, values.effort, resolve(values.skill));
+const d = disk(dir, resolve(values.logs), resolve(values.memory), c);
+const j = jobs(genie(e, d, meters([t, engine === 'codex' ? rollouts(q, sessions) : q]), engine === 'codex' ? () => recorded(model(), sessions) : model));
 const f = freeze(c, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const r = release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const start = Date.now();
@@ -121,6 +123,7 @@ process.on('exit', () => screen.close());
 if (tui) {
   r.check();
 }
+screen.notice().warn(`every agent starts as: ${e.command(d.args())}`);
 const quit = (code) => {
   screen.close();
   process.stdout.write('', () => process.stderr.write('', () => process.exit(code)));

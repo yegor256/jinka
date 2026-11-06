@@ -15,5 +15,6 @@ export const agent = (command) => Object.freeze({
       );
     }
     return child;
-  }
+  },
+  command: (args) => [command, ...args].map((a) => (/^[\w./\\:=@%+,~-]+$/.test(a) ? a : `'${a.replaceAll("'", "'\\''")}'`)).join(' ')
 });
