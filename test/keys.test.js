@@ -64,10 +64,9 @@ describe('keys', () => {
   });
   it('asks to remove a thread by the minus key', () => {
     const stream = Object.assign(new EventEmitter(), { setRawMode: () => {} });
-    const notes = [];
-    const c = crew(3, 16, protocol(notes));
+    const c = crew(3, 16, protocol([]));
     keys(stream, freeze(c, protocol([]), row([], 0), () => {}), c, () => {}).listen();
     stream.emit('data', Buffer.from('-'));
-    assertThat('thread removal was not asked', notes, equalTo([['warn', 'no idle thread can be removed right now']]));
+    assertThat('thread was not removed', c.size(), equalTo(2));
   });
 });
