@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "link": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "summary",
+    "link"
+  ],
+  "type": "object"
+}

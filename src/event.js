@@ -52,6 +52,14 @@ export const event = (line, count) => {
     }
     return '';
   };
+  const answer = (text) => {
+    try {
+      const json = JSON.parse(text);
+      return typeof json?.summary === 'string' ? { summary: json.summary, link: String(json.link ?? '') } : { summary: text, link: text };
+    } catch {
+      return { summary: text, link: text };
+    }
+  };
   const phrase = (json) => {
     if (json.type === 'assistant') {
       return (json.message?.content ?? []).map((p) => part(p)).filter((p) => p !== '').join(' ');
@@ -83,14 +91,14 @@ export const event = (line, count) => {
     },
     summary: () => {
       try {
-        return first(final(JSON.parse(line)));
+        return first(answer(final(JSON.parse(line))).summary);
       } catch {
         return '';
       }
     },
     link: () => {
       try {
-        return (final(JSON.parse(line)).match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0];
+        return (answer(final(JSON.parse(line))).link.match(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/) ?? [''])[0];
       } catch {
         return '';
       }

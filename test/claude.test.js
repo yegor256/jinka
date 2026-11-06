@@ -3,7 +3,7 @@
 
 import { text } from 'node:stream/consumers';
 import { randomUUID } from 'node:crypto';
-import { assertThat, containsString, equalTo, not } from 'hamjest';
+import { assertThat, containsString, equalTo, matchesPattern, not } from 'hamjest';
 import { claude } from '../src/claude.js';
 import { agent } from '../src/agent.js';
 import { script } from './fixtures/script.js';
@@ -53,6 +53,11 @@ describe('claude', () => {
     child.stdin.end();
     assertThat('effort was passed without being given', await text(child.stdout), not(containsString('--effort')));
   });
+  it('demands the final answer to match the json schema', async () => {
+    const child = claude(agent(await script(0).path()), '', '', `/${randomUUID()}`).start([], AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat('json schema was not demanded', await text(child.stdout), matchesPattern(/--json-schema \{[^ ]*\\"summary\\"/));
+  });
   it('adds no lines to the prompt', () => {
     assertThat('lines were added to the prompt', claude(agent(randomUUID()), '', '', `/${randomUUID()}`).lines(), equalTo([]));
   });
@@ -62,6 +67,6 @@ describe('claude', () => {
     const args = ['--add-dir', `/${randomUUID()}`];
     const child = engine.start(args, AbortSignal.timeout(5000));
     child.stdin.end();
-    assertThat('command line differs from the one started', engine.command(args), equalTo(`${path} ${JSON.parse((await text(child.stdout)).split('\n').at(-3)).message.content[0].text}`));
+    assertThat('command line differs from the one started', engine.command(args).replaceAll("'", ''), equalTo(`${path} ${JSON.parse((await text(child.stdout)).split('\n').at(-3)).message.content[0].text}`));
   });
 });

@@ -12,6 +12,7 @@ path = [
     "package-lock.json",
     "plugin/**",
     "renovate.json",
+    "src/answer.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "Copyright (c) 2026 Yegor Bugayenko"
