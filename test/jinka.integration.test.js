@@ -254,6 +254,30 @@ describe('jinka command', () => {
       matchesPattern(new RegExp(`every agent starts as: .+ --model ${model}\\n`))
     );
   });
+  it('prints the answer of the agent at startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    assertThat(
+      'answer of the agent was not printed',
+      spawnSync(
+        process.execPath,
+        ['bin/jinka.js', '--agent', await script(0).path(), '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+        { encoding: 'utf8', timeout: 10000 }
+      ).stdout,
+      containsString('the agent says: Finished with code 0\n')
+    );
+  });
+  it('exits with code 1 when the agent fails at startup', async () => {
+    assertThat(
+      'jinka did not stop on a broken agent',
+      spawnSync(
+        process.execPath,
+        ['bin/jinka.js', '--agent', await script(1).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
+        { encoding: 'utf8', timeout: 10000 }
+      ).status,
+      equalTo(1)
+    );
+  });
   it('prints the version', () => {
     assertThat(
       'version was not printed',

@@ -37,6 +37,7 @@ import { jobs } from '../src/jobs.js';
 import { summary } from '../src/summary.js';
 import { summarized } from '../src/summarized.js';
 import { semaphore } from '../src/semaphore.js';
+import { hello } from '../src/hello.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -139,6 +140,7 @@ process.on('SIGINT', interrupt);
 keys(process.stdin, f, c, interrupt).listen();
 wheel(process.stdin, screen).listen();
 try {
+  await hello(e, screen.notice()).run(controller.signal);
   await jinka(
     limited(frozen(throttled(wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), q, values.throttle, 15 * 60 * 1000, { warn: (text) => screen.notice().warn(text) }), f), values.limit, f),
     j,
