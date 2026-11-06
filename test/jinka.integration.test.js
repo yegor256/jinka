@@ -202,6 +202,13 @@ describe('jinka command', () => {
       containsString('runs again (default: 60000)')
     );
   });
+  it('rests five seconds between wishes by default', () => {
+    assertThat(
+      'help did not show a five second default slack',
+      spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout.replace(/\s+/g, ' '),
+      containsString('next wish (default: 5)')
+    );
+  });
   it('offers an option that turns the terminal user interface off', () => {
     assertThat(
       'help did not describe the no-tui option',
@@ -213,7 +220,7 @@ describe('jinka command', () => {
     assertThat(
       'help did not sort its options alphabetically',
       spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout,
-      matchesPattern(/--agent[^]*--archive[^]*--effort[^]*--engine[^]*--interval[^]*--limit[^]*--logs[^]*--memory[^]*--model[^]*--no-color[^]*--no-tui[^]*--pause[^]*--pid[^]*--skill[^]*--threads[^]*--throttle[^]*--wishes/)
+      matchesPattern(/--agent[^]*--archive[^]*--effort[^]*--engine[^]*--interval[^]*--limit[^]*--logs[^]*--memory[^]*--model[^]*--no-color[^]*--no-tui[^]*--pause[^]*--pid[^]*--skill[^]*--slack[^]*--threads[^]*--throttle[^]*--wishes/)
     );
   });
   it('prints the version at the end of the help description', () => {

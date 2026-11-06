@@ -56,6 +56,13 @@ const percent = (text) => {
   }
   return number;
 };
+const natural = (text) => {
+  const number = Number(text);
+  if (!Number.isInteger(number) || number < 0) {
+    throw new InvalidArgumentError(`A non-negative integer is expected, but got "${text}"`);
+  }
+  return number;
+};
 const limit = 16;
 const bounded = (text) => {
   const number = positive(text);
@@ -76,6 +83,7 @@ const program = new Command()
   .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
   .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs').default(join(homedir(), '.jinka', 'memory'), '~/.jinka/memory'))
   .addOption(new Option('--skill <dir>', 'directory with the plugin of skills that the agent loads').default(join(root, 'plugin'), 'skills bundled with jinka'))
+  .option('--slack <sec>', 'how many seconds a thread rests after a wish before it takes the next wish', natural, 5)
   .addOption(new Option('--engine <name>', 'kind of agent to run, guessed from the name of the agent executable when not given').choices(['claude', 'codex']))
   .addOption(new Option('--agent <cmd>', 'agent executable to run').default('', 'the name of the engine'))
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
@@ -146,7 +154,8 @@ try {
     limited(frozen(throttled(wishes(dir, values.interval, values.archive === '' ? '' : resolve(values.archive), values.pause, { warn: (text) => screen.notice().warn(text) }), q, values.throttle, 15 * 60 * 1000, { warn: (text) => screen.notice().warn(text) }), f), values.limit, f),
     j,
     screen,
-    c
+    c,
+    values.slack
   ).run(controller.signal);
   quit(130);
 } catch (e) {
