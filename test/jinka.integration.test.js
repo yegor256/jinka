@@ -240,6 +240,20 @@ describe('jinka command', () => {
     await Promise.race([once(reader, 'close'), setTimeout(6000)]);
     assertThat('summary was lost in the pipe', Buffer.concat(chunks).toString(), containsString('\nwishes came true: 0\n'));
   });
+  it('prints the command line of the agent at startup', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    const model = randomUUID();
+    assertThat(
+      'command line of the agent was not printed',
+      spawnSync(
+        process.execPath,
+        ['bin/jinka.js', '--agent', await script(0).path(), '--model', model, '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+        { encoding: 'utf8', timeout: 10000 }
+      ).stdout,
+      matchesPattern(new RegExp(`every agent starts as: .+ --model ${model}\\n`))
+    );
+  });
   it('prints the version', () => {
     assertThat(
       'version was not printed',

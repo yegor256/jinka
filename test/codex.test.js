@@ -4,7 +4,7 @@
 import { text } from 'node:stream/consumers';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { assertThat, containsString, endsWith, not } from 'hamjest';
+import { assertThat, containsString, endsWith, equalTo, not } from 'hamjest';
 import { codex } from '../src/codex.js';
 import { agent } from '../src/agent.js';
 import { script } from './fixtures/script.js';
@@ -61,5 +61,13 @@ describe('codex', () => {
   it('tells the agent where the skills live', () => {
     const plugin = `/${randomUUID()}`;
     assertThat('skills were not mentioned', codex(agent(randomUUID()), '', '', plugin).lines().join('\n'), containsString(join(plugin, 'skills')));
+  });
+  it('renders the same command line that it starts', async () => {
+    const path = await script(0).path();
+    const engine = codex(agent(path), randomUUID(), randomUUID(), `/${randomUUID()}`);
+    const args = ['--add-dir', `/${randomUUID()}`];
+    const child = engine.start(args, AbortSignal.timeout(5000));
+    child.stdin.end();
+    assertThat('command line differs from the one started', engine.command(args), equalTo(`${path} ${JSON.parse((await text(child.stdout)).split('\n').at(-3)).message.content[0].text}`));
   });
 });
