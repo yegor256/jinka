@@ -126,7 +126,7 @@ const screen = summarized(
       legend(f, r)
     )
     : log(process.stdout),
-  summary(start, pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir }),
+  summary(start, pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir, tokens: t }),
   process.stdout
 );
 process.on('exit', () => screen.close());
