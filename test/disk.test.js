@@ -25,6 +25,15 @@ describe('disk', () => {
   it('asks the agent to start names of new wish files with a small letter', () => {
     assertThat('small first letter was not demanded', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
   });
+  it('asks the agent to keep every new wish short', () => {
+    assertThat('length of a new wish was not limited', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Keep every new wish shorter than 1000 characters'));
+  });
+  it('forbids the agent to copy the current wish into a new wish', () => {
+    assertThat('copying of the current wish was not forbidden', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never copy the text of the current wish, or of these instructions, into a new wish'));
+  });
+  it('asks the agent to leave evidence and history out of a new wish', () => {
+    assertThat('evidence was not left out of a new wish', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Leave evidence, observations, logs, and the history of your work out of a new wish'));
+  });
   it('forbids the agent to delete the file of its own wish', () => {
     assertThat('deletion of the wish file was not forbidden', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never delete, move, or rename the file of this wish yourself'));
   });
