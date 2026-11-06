@@ -15,8 +15,7 @@ export const wishes = (dir, interval, archive = '', pause = 0, notice = { warn: 
     signal.throwIfAborted();
     const files = (await readdir(dir, { recursive: true, withFileTypes: true }))
       .filter((f) => f.isFile() && f.name.endsWith('.md'))
-      .map((f) => join(relative(dir, f.parentPath), f.name))
-      .sort();
+      .map((f) => join(relative(dir, f.parentPath), f.name));
     signal.throwIfAborted();
     if (startup.length === 0) {
       startup.push(new Set(files));
@@ -25,7 +24,8 @@ export const wishes = (dir, interval, archive = '', pause = 0, notice = { warn: 
         notice.warn(`found ${count} pre-existing ${count === 1 ? 'wish' : 'wishes'} in ${dir} that ${count === 1 ? 'is' : 'are'} not permanent`);
       }
     }
-    const path = files.find((f) => !claims.has(f))
+    const fresh = files.filter((f) => !claims.has(f));
+    const path = fresh[Math.floor(Math.random() * fresh.length)]
       ?? [...claims.keys()].find((c) => !claims.get(c) && files.includes(c));
     if (path === undefined) {
       await setTimeout(interval, undefined, { signal });

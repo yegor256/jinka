@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo, not, hasItem, empty, promiseThat, rejected } from 'hamjest';
+import { assertThat, equalTo, not, hasItem, empty, promiseThat, rejected, greaterThan } from 'hamjest';
 import { wishes } from '../src/wishes.js';
 import { protocol } from '../src/protocol.js';
 
@@ -36,17 +36,25 @@ describe('wishes', () => {
     await writeFile(join(dir, 'a.md'), randomUUID());
     await writeFile(join(dir, 'b.md'), randomUUID());
     const w = wishes(dir, 10);
-    (await w.next(AbortSignal.timeout(5000))).free();
-    assertThat('tried wish was preferred', (await w.next(AbortSignal.timeout(5000))).name(), equalTo('b.md'));
+    const first = await w.next(AbortSignal.timeout(5000));
+    first.free();
+    assertThat('tried wish was preferred', (await w.next(AbortSignal.timeout(5000))).name(), not(equalTo(first.name())));
   });
   it('prefers the least recently tried wish', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     await writeFile(join(dir, 'a.md'), randomUUID());
     await writeFile(join(dir, 'b.md'), randomUUID());
     const w = wishes(dir, 10);
+    const first = await w.next(AbortSignal.timeout(5000));
+    first.free();
     (await w.next(AbortSignal.timeout(5000))).free();
-    (await w.next(AbortSignal.timeout(5000))).free();
-    assertThat('recent wish was preferred', (await w.next(AbortSignal.timeout(5000))).name(), equalTo('a.md'));
+    assertThat('recent wish was preferred', (await w.next(AbortSignal.timeout(5000))).name(), equalTo(first.name()));
+  });
+  it('picks an untried wish at random', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await Promise.all([...Array(20).keys()].map(() => writeFile(join(dir, `${randomUUID()}.md`), randomUUID())));
+    const names = await Promise.all([...Array(10).keys()].map(async () => (await wishes(dir, 10).next(AbortSignal.timeout(5000))).name()));
+    assertThat('wishes were picked in a fixed order', new Set(names).size, greaterThan(1));
   });
   it('waits for a wish that appears later', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
