@@ -11,24 +11,24 @@ import { jobs } from '../src/jobs.js';
 
 describe('summary', () => {
   it('starts with a separator line', () => {
-    assertThat('summary does not start with a separator', summary(Date.now(), '1.2.3', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'high', wishes: join(tmpdir(), randomUUID()) }).text(), startsWith('---\n'));
+    assertThat('summary does not start with a separator', summary(Date.now(), '1.2.3', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'high', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => '0' } }).text(), startsWith('---\n'));
   });
   it('shows the version and how long jinka worked', () => {
     const version = randomUUID();
-    assertThat('version and duration are not shown', summary(Date.now() - 3_725_000, version, jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'high', wishes: join(tmpdir(), randomUUID()) }).text(), containsString(`\njinka ${version} finished in 01:02:05\n`));
+    assertThat('version and duration are not shown', summary(Date.now() - 3_725_000, version, jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'high', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => '0' } }).text(), containsString(`\njinka ${version} finished in 01:02:05\n`));
   });
   it('shows the agent, the model, and the effort', () => {
     const agent = randomUUID();
-    assertThat('agent settings are not shown', summary(Date.now(), '0.0.1', jobs({ run: async () => ({ code: 0 }) }), { agent, model: 'sonnet', effort: 'xhigh', wishes: join(tmpdir(), randomUUID()) }).text(), containsString(`\nagent: ${agent}, model: sonnet, effort: xhigh\n`));
+    assertThat('agent settings are not shown', summary(Date.now(), '0.0.1', jobs({ run: async () => ({ code: 0 }) }), { agent, model: 'sonnet', effort: 'xhigh', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => '0' } }).text(), containsString(`\nagent: ${agent}, model: sonnet, effort: xhigh\n`));
   });
   it('shows the defaults when no model and no effort are chosen', () => {
-    assertThat('defaults are not shown', summary(Date.now(), '0.0.2', jobs({ run: async () => ({ code: 0 }) }), { agent: 'codex', model: '', effort: '', wishes: join(tmpdir(), randomUUID()) }).text(), containsString('\nagent: codex, model: default, effort: default\n'));
+    assertThat('defaults are not shown', summary(Date.now(), '0.0.2', jobs({ run: async () => ({ code: 0 }) }), { agent: 'codex', model: '', effort: '', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => '0' } }).text(), containsString('\nagent: codex, model: default, effort: default\n'));
   });
   it('shows how many wishes came true', async () => {
     const j = jobs({ run: async () => ({ code: 0 }) });
     await j.run({}, { show: () => {} }, AbortSignal.timeout(1000));
     await j.run({}, { show: () => {} }, AbortSignal.timeout(1000));
-    assertThat('wishes that came true are not shown', summary(Date.now(), '0.0.3', j, { agent: 'claude', model: 'haiku', effort: 'low', wishes: join(tmpdir(), randomUUID()) }).text(), containsString('\nwishes came true: 2\n'));
+    assertThat('wishes that came true are not shown', summary(Date.now(), '0.0.3', j, { agent: 'claude', model: 'haiku', effort: 'low', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => '0' } }).text(), containsString('\nwishes came true: 2\n'));
   });
   it('counts the wishes that remained in the directory', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
@@ -36,14 +36,18 @@ describe('summary', () => {
     await writeFile(join(dir, 'a.md'), 'first');
     await writeFile(join(dir, 'deep', 'b.md'), 'second');
     await writeFile(join(dir, 'c.txt'), 'third');
-    assertThat('remaining wishes are not counted', summary(Date.now(), '0.0.4', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir }).text(), equalTo(`---\njinka 0.0.4 finished in 00:00:00\nagent: claude, model: opus, effort: max\nwishes came true: 0\nwishes remained in ${dir}: 2\n`));
+    assertThat('remaining wishes are not counted', summary(Date.now(), '0.0.4', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir, tokens: { text: () => '0' } }).text(), equalTo(`---\njinka 0.0.4 finished in 00:00:00\nagent: claude, model: opus, effort: max\nwishes came true: 0\ntokens consumed: 0\nwishes remained in ${dir}: 2\n`));
   });
   it('counts no wishes when the directory is absent', () => {
     const dir = join(tmpdir(), randomUUID());
-    assertThat('absent directory is not empty', summary(Date.now(), '0.0.5', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir }).text(), containsString(`\nwishes remained in ${dir}: 0\n`));
+    assertThat('absent directory is not empty', summary(Date.now(), '0.0.5', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: dir, tokens: { text: () => '0' } }).text(), containsString(`\nwishes remained in ${dir}: 0\n`));
   });
   it('shortens the home directory to a tilde', () => {
     const name = randomUUID();
-    assertThat('home directory is not shortened', summary(Date.now(), '0.0.6', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: join(homedir(), name) }).text(), containsString(`\nwishes remained in ${join('~', name)}: 0\n`));
+    assertThat('home directory is not shortened', summary(Date.now(), '0.0.6', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: join(homedir(), name), tokens: { text: () => '0' } }).text(), containsString(`\nwishes remained in ${join('~', name)}: 0\n`));
+  });
+  it('shows how many tokens were consumed', () => {
+    const count = randomUUID();
+    assertThat('consumed tokens are not shown', summary(Date.now(), '0.0.7', jobs({ run: async () => ({ code: 0 }) }), { agent: 'claude', model: 'opus', effort: 'max', wishes: join(tmpdir(), randomUUID()), tokens: { text: () => count } }).text(), containsString(`\ntokens consumed: ${count}\n`));
   });
 });
