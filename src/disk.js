@@ -30,6 +30,7 @@ export const disk = (wishes, logs, memory, crew) => Object.freeze({
       `In every Git repository you touch, do all your work inside a separate Git worktree, never in the main directory of the repository, so that other wishes running at the same time do not see your changes.`,
       `Never spend time waiting while doing a wish, neither sleeping nor polling for a build, a review, a merge, or anything else;`,
       `if something must happen first, write a new wish that waits for it and finishes the job, and then complete the current wish right away.`,
+      'Never schedule work for later through cron, launchd, at, a task scheduler, or any scheduling feature of your own, but write a new wish instead.',
       `Your memory lives in the directory ${memory}, keep there what the skills tell you to keep.`,
       `Jinka runs ${crew.size()} threads right now, so up to ${crew.size()} wishes run at once.`
     ];
