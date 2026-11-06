@@ -2,12 +2,21 @@
 // SPDX-License-Identifier: MIT
 
 import { styleText } from 'node:util';
+import { setTimeout } from 'node:timers/promises';
 import { duration } from './duration.js';
 import { ellipsized } from './ellipsized.js';
 
-export const wand = (wishes, agent, row, protocol) => {
+export const wand = (wishes, agent, row, protocol, slack) => {
+  const idle = (text) => row.show(`${styleText('gray', 'idle', { validateStream: false })}\t${styleText('gray', text, { validateStream: false })}`);
+  const rest = async (left, signal) => {
+    if (left > 0) {
+      idle(`waiting for wishes (${left}s)`);
+      await setTimeout(1000, undefined, { signal });
+      await rest(left - 1, signal);
+    }
+  };
   const once = async (signal) => {
-    row.show(`${styleText('gray', 'idle', { validateStream: false })}\t${styleText('gray', 'waiting for wishes', { validateStream: false })}`);
+    idle('waiting for wishes');
     const wish = await wishes.next(signal);
     row.show(`${ellipsized(wish.name(), 64).text()}\tstarting the agent`);
     const start = Date.now();
@@ -20,6 +29,7 @@ export const wand = (wishes, agent, row, protocol) => {
       wish.free();
       protocol.info(`failed with exit code ${code}${summary === '' ? '' : `: ${summary}`} ${suffix}`);
     }
+    await rest(slack, signal);
   };
   return Object.freeze({
     run: async (signal) => {

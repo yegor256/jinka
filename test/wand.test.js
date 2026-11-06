@@ -5,7 +5,7 @@ import { mkdtemp, writeFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, empty, hasItem, equalTo, matchesPattern } from 'hamjest';
+import { assertThat, empty, hasItem, hasSize, equalTo, matchesPattern } from 'hamjest';
 import { wand } from '../src/wand.js';
 import { wishes } from '../src/wishes.js';
 import { row } from '../src/row.js';
@@ -15,20 +15,20 @@ describe('wand', () => {
   it('deletes a late wish after agent succeeds', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     setTimeout(() => writeFile(join(dir, 'a.md'), 'Make me happy'), 50);
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([])).run(AbortSignal.timeout(500));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([]), 0).run(AbortSignal.timeout(500));
     assertThat('wish was not deleted', await readdir(dir), empty());
   });
   it('keeps a capitalized startup wish after agent succeeds', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const name = `P${randomUUID()}.md`;
     await writeFile(join(dir, name), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([])).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([]), 0).run(AbortSignal.timeout(300));
     assertThat('startup wish was deleted', await readdir(dir), equalTo([name]));
   });
   it('keeps wish after agent fails', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     await writeFile(join(dir, 'b.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 1, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([])).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 1, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol([]), 0).run(AbortSignal.timeout(300));
     assertThat('failed wish was deleted', await readdir(dir), equalTo(['b.md']));
   });
   it('shows the wish name next to the agent progress', async () => {
@@ -36,7 +36,7 @@ describe('wand', () => {
     const name = `${randomUUID()}.md`;
     const lines = [];
     await writeFile(join(dir, name), randomUUID());
-    await wand(wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, row(lines, 0), protocol([])).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, row(lines, 0), protocol([]), 0).run(AbortSignal.timeout(300));
     assertThat('wish name was not shown', lines, hasItem(equalTo([0, `${name}\tworking`])));
   });
   it('ellipsizes a long wish name next to the agent progress', async () => {
@@ -44,13 +44,13 @@ describe('wand', () => {
     const name = `${randomUUID()}${randomUUID()}${randomUUID()}.md`;
     const lines = [];
     await writeFile(join(dir, name), randomUUID());
-    await wand(wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, row(lines, 0), protocol([])).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async (wish, row) => { row.show('working'); return { code: 0, summary: '' }; } }, row(lines, 0), protocol([]), 0).run(AbortSignal.timeout(300));
     assertThat('long wish name was not ellipsized', lines, hasItem(equalTo([0, `${name.slice(0, 31)}…${name.slice(-31)}\tworking`])));
   });
   it('shows idle in gray', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const lines = [];
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row(lines, 0), protocol([])).run(AbortSignal.timeout(100));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row(lines, 0), protocol([]), 0).run(AbortSignal.timeout(100));
     assertThat('idle was not gray', lines.map((l) => l[1]), hasItem(equalTo('\x1b[90midle\x1b[39m\t\x1b[90mwaiting for wishes\x1b[39m')));
   });
   it('reports a fulfilled wish to the protocol', async () => {
@@ -58,14 +58,14 @@ describe('wand', () => {
     const name = `${randomUUID()}.md`;
     const notes = [];
     await writeFile(join(dir, name), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('fulfilled wish was not reported', notes, hasItem(equalTo(['info', `done (${name} 00:00 0)`])));
   });
   it('reports a failed wish with its exit code to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const notes = [];
     await writeFile(join(dir, 'c.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 42, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 42, summary: '', tokens: '0', model: '' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('failed wish was not reported', notes.map((n) => n[1]), hasItem(matchesPattern(/^failed with exit code 42 \(c\.md \d{2}:\d{2} 0\)$/)));
   });
   it('reports what was done for a fulfilled wish to the protocol', async () => {
@@ -73,7 +73,7 @@ describe('wand', () => {
     const summary = `Merged PR #${randomUUID()} ü`;
     const notes = [];
     await writeFile(join(dir, 'd.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary, tokens: '0', model: '' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary, tokens: '0', model: '' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('summary of the fulfilled wish was not reported', notes, hasItem(equalTo(['info', `${summary} (d.md 00:00 0)`])));
   });
   it('reports what was done for a failed wish to the protocol', async () => {
@@ -81,14 +81,14 @@ describe('wand', () => {
     const summary = `Gave up on ${randomUUID()}`;
     const notes = [];
     await writeFile(join(dir, 'e.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 7, summary, tokens: '0', model: '' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 7, summary, tokens: '0', model: '' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('summary of the failed wish was not reported', notes.map((n) => n[1]), hasItem(equalTo(`failed with exit code 7: ${summary} (e.md 00:00 0)`)));
   });
   it('reports the tokens and the model of a wish to the protocol', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const notes = [];
     await writeFile(join(dir, 'f.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Fixed it', tokens: '324K', model: 'Sonnet4.5' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Fixed it', tokens: '324K', model: 'Sonnet4.5' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('tokens and model were not reported', notes, hasItem(equalTo(['info', 'Fixed it (f.md 00:00 324K Sonnet4.5)'])));
   });
   it('reports the link of a fulfilled wish at the end of its protocol line', async () => {
@@ -96,7 +96,23 @@ describe('wand', () => {
     const link = `https://github.com/q/w/issues/${Math.floor(Math.random() * 1000)}`;
     const notes = [];
     await writeFile(join(dir, 'g.md'), randomUUID());
-    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Closed ü', link, tokens: '1K', model: '' }) }, row([], 0), protocol(notes)).run(AbortSignal.timeout(300));
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: 'Closed ü', link, tokens: '1K', model: '' }) }, row([], 0), protocol(notes), 0).run(AbortSignal.timeout(300));
     assertThat('link was not reported', notes, hasItem(equalTo(['info', `Closed ü (g.md 00:00 1K) ${link}`])));
+  });
+  it('counts down the slack after a wish', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const slack = 2 + Math.floor(Math.random() * 7);
+    const lines = [];
+    await writeFile(join(dir, 'h.md'), randomUUID());
+    await wand(wishes(dir, 10), { run: async () => ({ code: 0, summary: '', tokens: '0', model: '' }) }, row(lines, 0), protocol([]), slack).run(AbortSignal.timeout(300));
+    assertThat('slack was not counted down', lines.map((l) => l[1]), hasItem(equalTo(`\x1b[90midle\x1b[39m\t\x1b[90mwaiting for wishes (${slack}s)\x1b[39m`)));
+  });
+  it('dont take the next wish before the slack is over', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const names = [];
+    await writeFile(join(dir, 'i.md'), randomUUID());
+    await writeFile(join(dir, 'j.md'), randomUUID());
+    await wand(wishes(dir, 10), { run: async (wish) => { names.push(wish.name()); return { code: 1, summary: '', tokens: '0', model: '' }; } }, row([], 0), protocol([]), 3).run(AbortSignal.timeout(500));
+    assertThat('next wish was taken during the slack', names, hasSize(1));
   });
 });
