@@ -236,7 +236,13 @@ describe('tty', () => {
     const chunks = [];
     const text = randomUUID();
     tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
-    assertThat('warning was not orange', chunks.at(-1), containsString(`\x1b[38;2;255;135;0m${text}\x1b[39m`));
+    assertThat('time of a warning was not orange', chunks.at(-1), matchesPattern(new RegExp(`\x1b\\[38;2;255;135;0m\\d{2}:\\d{2}:\\d{2}\x1b\\[39m ${text}`)));
+  });
+  it('dont paint the text of a warning orange', () => {
+    const chunks = [];
+    const text = randomUUID();
+    tty({ columns: 80, rows: 24, write: (c) => chunks.push(c), on: () => {} }, crew(1, 16, protocol([])), status(Date.now(), jobs({ run: async () => ({ code: 0 }) }), 'claude', 'opus', tokens(), quota()), legend(freeze(crew(1, 16, protocol([])), protocol([]), () => {}), { text: () => '0.0.0' })).notice().warn(text);
+    assertThat('text of a warning was orange', chunks.at(-1), not(containsString(`\x1b[38;2;255;135;0m${text}`)));
   });
   it('dont paint an informational message orange', () => {
     const chunks = [];
