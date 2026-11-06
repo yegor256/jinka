@@ -1,47 +1,83 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
-import { mkdtemp, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, containsString, equalTo } from 'hamjest';
+import { assertThat, containsString, equalTo, not } from 'hamjest';
 import { disk } from '../src/disk.js';
 import { wish } from '../src/wish.js';
+
+const directory = async (count) => {
+  const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+  await mkdir(join(dir, 'вложено'));
+  await Promise.all([...Array(count).keys()].map((i) => writeFile(join(dir, i % 2 === 0 ? '' : 'вложено', `w-${randomUUID()}.md`), `wish ${i}`)));
+  await writeFile(join(dir, `${randomUUID()}.txt`), 'not a wish');
+  return dir;
+};
 
 describe('disk', () => {
   it('tells the agent where its memory lives', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
-    assertThat('memory was not mentioned', disk('/wishes', '/logs', memory, { size: () => 1 }).lines(wish('/wishes', 'a.md', new Map())).join('\n'), containsString(memory));
+    const dir = await directory(1);
+    assertThat('memory was not mentioned', (await disk(dir, '/logs', memory, { size: () => 1 }).lines(wish(dir, 'a.md', new Map()))).join('\n'), containsString(memory));
   });
-  it('tells the agent how many threads run right now', () => {
+  it('tells the agent how many threads run right now', async () => {
     const size = 2 + Math.floor(Math.random() * 30);
-    assertThat('thread count was not mentioned', disk('/wishes', '/logs', '/memory', { size: () => size }).lines(wish('/wishes', 'c.md', new Map())).join('\n'), containsString(`Jinka runs ${size} threads right now`));
+    const dir = await directory(1);
+    assertThat('thread count was not mentioned', (await disk(dir, '/logs', '/memory', { size: () => size }).lines(wish(dir, 'c.md', new Map()))).join('\n'), containsString(`Jinka runs ${size} threads right now`));
   });
-  it('asks the agent to split a wish into smaller wishes next to it', () => {
+  it('asks the agent to split a wish into smaller wishes next to it', async () => {
     const deep = join(randomUUID(), 'глубоко');
-    assertThat('wish directory was not offered for smaller wishes', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', join(deep, 'x.md'), new Map())).join('\n'), containsString(`write each of them as a separate Markdown file in the directory ${join('/wishes', deep)}`));
+    const dir = await directory(1);
+    assertThat('wish directory was not offered for smaller wishes', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, join(deep, 'x.md'), new Map()))).join('\n'), containsString(`write each of them as a separate Markdown file in the directory ${join(dir, deep)}`));
   });
-  it('asks the agent to start names of new wish files with a small letter', () => {
-    assertThat('small first letter was not demanded', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
+  it('asks the agent to start names of new wish files with a small letter', async () => {
+    const dir = await directory(1);
+    assertThat('small first letter was not demanded', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('start the name of every new wish file with a small English letter, never with a capital one'));
   });
-  it('asks the agent to keep every new wish short', () => {
-    assertThat('length of a new wish was not limited', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Keep every new wish shorter than 1000 characters'));
+  it('asks the agent to keep every new wish short', async () => {
+    const dir = await directory(1);
+    assertThat('length of a new wish was not limited', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Keep every new wish shorter than 1000 characters'));
   });
-  it('forbids the agent to copy the current wish into a new wish', () => {
-    assertThat('copying of the current wish was not forbidden', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never copy the text of the current wish, or of these instructions, into a new wish'));
+  it('forbids the agent to copy the current wish into a new wish', async () => {
+    const dir = await directory(1);
+    assertThat('copying of the current wish was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never copy the text of the current wish, or of these instructions, into a new wish'));
   });
-  it('asks the agent to leave evidence and history out of a new wish', () => {
-    assertThat('evidence was not left out of a new wish', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Leave evidence, observations, logs, and the history of your work out of a new wish'));
+  it('asks the agent to leave evidence and history out of a new wish', async () => {
+    const dir = await directory(1);
+    assertThat('evidence was not left out of a new wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Leave evidence, observations, logs, and the history of your work out of a new wish'));
   });
-  it('forbids the agent to delete the file of its own wish', () => {
-    assertThat('deletion of the wish file was not forbidden', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never delete, move, or rename the file of this wish yourself'));
+  it('limits new wishes of one run to the number of threads', async () => {
+    const size = 2 + Math.floor(Math.random() * 30);
+    const dir = await directory(1);
+    assertThat('new wishes were not limited by threads', (await disk(dir, '/logs', '/memory', { size: () => size }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`Write at most ${size} new wishes while doing this wish`));
   });
-  it('asks the agent to work in git worktrees', () => {
-    assertThat('git worktrees were not demanded', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('do all your work inside a separate Git worktree'));
+  it('tells the agent how many wishes the directory holds', async () => {
+    const count = 3 + Math.floor(Math.random() * 40);
+    const dir = await directory(count);
+    assertThat('wish count was not mentioned', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`holds ${count} wishes right now`));
   });
-  it('asks the agent to hand any waiting over to a new wish', () => {
-    assertThat('waiting was not handed over to a new wish', disk('/wishes', '/logs', '/memory', { size: () => 1 }).lines(wish('/wishes', `${randomUUID()}.md`, new Map())).join('\n'), containsString('Never spend time waiting while doing a wish'));
+  it('asks the agent to do the whole wish itself when the directory holds a hundred wishes', async () => {
+    const dir = await directory(100 + Math.floor(Math.random() * 20));
+    assertThat('splitting was not forbidden in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('never split this wish into new wishes, but do all of it yourself'));
+  });
+  it('dont ask the agent to do the whole wish itself when the directory holds few wishes', async () => {
+    const dir = await directory(1 + Math.floor(Math.random() * 98));
+    assertThat('splitting was forbidden in a directory that is not full', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('never split this wish into new wishes, but do all of it yourself')));
+  });
+  it('forbids the agent to delete the file of its own wish', async () => {
+    const dir = await directory(1);
+    assertThat('deletion of the wish file was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never delete, move, or rename the file of this wish yourself'));
+  });
+  it('asks the agent to work in git worktrees', async () => {
+    const dir = await directory(1);
+    assertThat('git worktrees were not demanded', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('do all your work inside a separate Git worktree'));
+  });
+  it('asks the agent to hand any waiting over to a new wish', async () => {
+    const dir = await directory(1);
+    assertThat('waiting was not handed over to a new wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never spend time waiting while doing a wish'));
   });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());

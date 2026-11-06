@@ -9,8 +9,7 @@ description: |
   Picks the oldest untouched items, skips those that already have a wish,
     wait for their author, or were triaged within the last day,
     skips pull requests whose latest review requests changes,
-    and writes at most as many new wishes as jinka runs threads,
-    one per item, into the wishes directory.
+    and writes one new wish per item into the wishes directory.
 ---
 
 Target every repository named by the wish.
@@ -31,8 +30,6 @@ Skip issues triaged less than one day ago,
   according to `<owner>/<repo>/triaged.csv`
   in the memory directory given in the prompt.
 
-Write at most as many new wishes per run as jinka runs threads,
-  as the prompt says, across all repositories.
 Write no wish when every candidate was skipped.
 
 Write one Markdown file per item, in the root of the wishes directory.
