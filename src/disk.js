@@ -13,6 +13,7 @@ export const disk = (wishes, logs, memory, crew) => Object.freeze({
     return [
       `The wish is written in the file ${join(wishes, wish.name())}, ${wish.fate()}.`,
       'Never delete, move, or rename the file of this wish yourself, even after you split it into smaller wishes, since Jinka takes care of it.',
+      'Never modify any existing wish file, neither the file of this wish nor any other, since every wish file is read-only for you.',
       `All wishes live in the directory ${wishes}, and you may add new wishes there as Markdown files.`,
       `Never write a new wish if a similar wish already exists anywhere in the directory ${wishes}, so look through the existing wishes before you write one.`,
       `If this wish is an atomic job that involves no other jobs, make it come true yourself;`,
