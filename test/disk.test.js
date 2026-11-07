@@ -71,6 +71,10 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('deletion of the wish file was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never delete, move, or rename the file of this wish yourself'));
   });
+  it('forbids the agent to modify any existing wish file', async () => {
+    const dir = await directory(1);
+    assertThat('modification of wish files was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never modify any existing wish file'));
+  });
   it('asks the agent to work in git worktrees', async () => {
     const dir = await directory(1);
     assertThat('git worktrees were not demanded', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('do all your work inside a separate Git worktree'));
