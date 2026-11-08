@@ -7,6 +7,9 @@ description: |
   Merges only when an approving review stands on the head commit,
     every check on it completed without failure,
     and the branch has no conflicts; otherwise leaves it alone.
+  Merges a pull request from `renovate[bot]` without a review
+    when every check on its head commit passed and it has no conflicts,
+    and otherwise leaves it alone without a word.
 ---
 
 # Accept a pull request
@@ -20,6 +23,16 @@ Do every step yourself, in this run, without subagents
 
 Skip a closed, merged, or draft pull request.
 Skip reviewing the code, since the approving review did that.
+
+Treat a pull request whose author is `renovate[bot]` by this paragraph alone.
+Merge it only when every check on its head commit completed without failure
+  and the branch has no conflicts with the base branch.
+Approve it first only when the branch protection requires a review.
+Merge it with `gh pr merge`, record the visit, and stop.
+Leave it alone in every other case,
+  since Renovate rebases and retries by itself.
+Never comment on it, push to its branch, or build it locally,
+  and never write a new wish or notify anyone about it.
 
 Check every gate against the head commit through the GitHub API,
   never against what the pull request says about itself.
