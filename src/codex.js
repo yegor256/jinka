@@ -3,6 +3,7 @@
 
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { skills } from './skills.js';
 
 export const codex = (agent, model, effort, plugin) => {
   const full = (args) => [
@@ -17,9 +18,10 @@ export const codex = (agent, model, effort, plugin) => {
   return Object.freeze({
     start: (args, signal) => agent.start(full(args), signal),
     command: (args) => agent.command(full(args)),
-    lines: () => [
-      `Your skills live in the directory ${join(plugin, 'skills')}, one skill per subdirectory, each described in its SKILL.md file.`,
-      'Before you start, read the descriptions of these skills, and whenever a skill fits your work, read its SKILL.md file and follow it.'
+    lines: async () => [
+      'These are your skills, each with its name, the path of its SKILL.md file, and its description:',
+      ...(await skills(join(plugin, 'skills')).lines()),
+      'Whenever a skill fits your work, read its SKILL.md file and follow it; never list the directory of skills, since every skill is named above.'
     ]
   });
 };

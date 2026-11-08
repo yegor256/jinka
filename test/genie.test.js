@@ -91,6 +91,15 @@ describe('genie', () => {
     await genie({ start: (args, signal) => a.start(args, signal), lines: () => [line] }, disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'r.md', new Map()), row(lines, 0), AbortSignal.timeout(5000));
     assertThat('lines of the engine did not reach the agent', lines.map((l) => l[1]).join('\n'), containsString(line));
   });
+  it('adds the lines that the engine gives asynchronously', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const line = `Навыки ${randomUUID()}`;
+    const lines = [];
+    const a = agent(await script(0).path());
+    await writeFile(join(dir, 'u.md'), randomUUID());
+    await genie({ start: (args, signal) => a.start(args, signal), lines: async () => [line] }, disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'u.md', new Map()), row(lines, 0), AbortSignal.timeout(5000));
+    assertThat('asynchronous lines of the engine did not reach the agent', lines.map((l) => l[1]).join('\n'), containsString(line));
+  });
   it('saves the output of the agent into the logs', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const logs = await mkdtemp(join(tmpdir(), 'jinka-'));
