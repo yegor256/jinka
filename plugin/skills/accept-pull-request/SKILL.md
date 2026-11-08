@@ -28,7 +28,7 @@ Treat a pull request whose author is `renovate[bot]` by this paragraph alone.
 Merge it only when every check on its head commit completed without failure
   and the branch has no conflicts with the base branch.
 Approve it first only when the branch protection requires a review.
-Merge it with `gh pr merge`, record the visit, and stop.
+Merge it with `gh pr merge --merge`, record the visit, and stop.
 Leave it alone in every other case,
   since Renovate rebases and retries by itself.
 Never comment on it, push to its branch, or build it locally,
