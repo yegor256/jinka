@@ -47,7 +47,6 @@ Leave the pull request untouched when any other gate fails.
 
 Merge with a merge commit, or with the method the repository allows.
 Keep the head branch, since its author owns it.
-Post one comment on the pull request that says why you merged it.
 
 Write like a human maintainer, short and specific.
 Open with substance, never with praise or boilerplate.
