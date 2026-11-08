@@ -23,6 +23,15 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('memory was not mentioned', (await disk(dir, '/logs', memory, { size: () => 1 }).lines(wish(dir, 'a.md', new Map()))).join('\n'), containsString(memory));
   });
+  it('limits the memory to what a skill tells the agent to keep', async () => {
+    const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID(), 'память');
+    const dir = await directory(1);
+    assertThat('memory was not limited to what a skill demands', (await disk(dir, '/logs', memory, { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`Your memory lives in the directory ${memory}; keep there only what a skill tells you to keep`));
+  });
+  it('forbids the agent to keep logs, handoffs, or instructions in its memory', async () => {
+    const dir = await directory(1);
+    assertThat('logs, handoffs, and instructions were not kept out of memory', (await disk(dir, '/logs', `/${randomUUID()}`, { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('never write anything else there, especially not logs, handoffs, or instructions for other wishes'));
+  });
   it('tells the agent how many threads run right now', async () => {
     const size = 2 + Math.floor(Math.random() * 30);
     const dir = await directory(1);
