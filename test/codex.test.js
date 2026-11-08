@@ -4,7 +4,8 @@
 import { text } from 'node:stream/consumers';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { assertThat, containsString, endsWith, equalTo, not } from 'hamjest';
 import { codex } from '../src/codex.js';
 import { agent } from '../src/agent.js';
@@ -68,9 +69,25 @@ describe('codex', () => {
       containsString('"summary"')
     );
   });
-  it('tells the agent where the skills live', () => {
-    const plugin = `/${randomUUID()}`;
-    assertThat('skills were not mentioned', codex(agent(randomUUID()), '', '', plugin).lines().join('\n'), containsString(join(plugin, 'skills')));
+  it('puts the description of every skill into the prompt', async () => {
+    const plugin = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const text = `Чинит ${randomUUID()}`;
+    const name = `s-${randomUUID()}`;
+    await mkdir(join(plugin, 'skills', name), { recursive: true });
+    await writeFile(join(plugin, 'skills', name, 'SKILL.md'), `---\nname: ${name}\ndescription: |\n  ${text}\n---\n`);
+    assertThat('description of the skill was not given', (await codex(agent(randomUUID()), '', '', plugin).lines()).join('\n'), containsString(text));
+  });
+  it('gives the path of the file of every skill', async () => {
+    const plugin = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `p-${randomUUID()}`;
+    await mkdir(join(plugin, 'skills', name), { recursive: true });
+    await writeFile(join(plugin, 'skills', name, 'SKILL.md'), `---\nname: ${name}\ndescription: |\n  Pays ${randomUUID()}.\n---\n`);
+    assertThat('path of the skill file was not given', (await codex(agent(randomUUID()), '', '', plugin).lines()).join('\n'), containsString(join(plugin, 'skills', name, 'SKILL.md')));
+  });
+  it('dont ask the agent to read the descriptions of skills by itself', async () => {
+    const plugin = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await mkdir(join(plugin, 'skills'));
+    assertThat('agent was asked to read the descriptions', (await codex(agent(randomUUID()), '', '', plugin).lines()).join('\n'), not(containsString('read the descriptions')));
   });
   it('renders the same command line that it starts', async () => {
     const path = await script(0).path();

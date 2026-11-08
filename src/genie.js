@@ -13,7 +13,7 @@ export const genie = (engine, disk, meter, model) => Object.freeze({
       await wish.text(),
       '',
       ...(await disk.lines(wish)),
-      ...engine.lines(),
+      ...(await engine.lines()),
       'When you finish, answer with a JSON object of two fields:',
       '"summary" is a single plain sentence that says what you did,',
       'and "link" is the full URL of the GitHub issue or pull request you worked on, or an empty string if there was none.'

@@ -141,6 +141,18 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('duplicate wishes were not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never write a new wish if a similar wish already exists'));
   });
+  it('asks the agent to look for a similar wish only right before writing a new one', async () => {
+    const dir = await directory(2);
+    assertThat('search for similar wishes was not deferred', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('only right before you write a new wish'));
+  });
+  it('asks the agent to look for a similar wish by the names of files first', async () => {
+    const dir = await directory(3);
+    assertThat('file names were not suggested for the search', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('names of the wish files first'));
+  });
+  it('dont ask the agent to look through the existing wishes up front', async () => {
+    const dir = await directory(1);
+    assertThat('agent was asked to look through all wishes', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('look through the existing wishes')));
+  });
   it('grants the agent access to its memory', async () => {
     const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
     assertThat('memory was not granted', disk('/wishes', '/logs', memory, { size: () => 1 }).args().join(' '), containsString(`--add-dir ${memory}`));
