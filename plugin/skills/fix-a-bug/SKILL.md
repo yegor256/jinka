@@ -61,9 +61,8 @@ Open one pull request from the branch to the default branch.
 Close the issue with a closing keyword, such as `Closes #42`.
 Say in the body what the bug was, how the test shows it,
   and what the fix changes.
-Never wait for the checks of the pull request.
-Hand them over to a new wish, as the prompt says, that fixes the branch
-  until every check is green, even when a failure is unrelated to the change.
+Never wait for the checks of the pull request,
+  and write no new wish to watch them, as the prompt says.
 
 Write like a human maintainer, short and specific.
 Open with substance, never with boilerplate.
