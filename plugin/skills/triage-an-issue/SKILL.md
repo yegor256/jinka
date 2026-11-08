@@ -7,7 +7,8 @@ description: |
     "sort out the ticket", or names one issue in one repository.
   Judges whether the issue is clear and real, checks it against
     the code and the backlog, applies existing labels,
-    closes duplicates and fixed issues, and leaves one short comment.
+    closes duplicates and fixed issues,
+    and comments only when it closes, relabels, or asks a question.
 ---
 
 # Triage an issue
@@ -53,9 +54,8 @@ Apply `bug` to a defect, `enhancement` to a request,
 Replace a wrong label instead of adding a second one.
 Skip labels when this account cannot label issues.
 
-Leave one comment that says what should be done next
-  and points at the file and line that need the change, when known.
-Skip the comment when the issue already says all of that.
+Comment only when you close the issue, change its labels,
+  or ask its author a question.
 
 Write like a human maintainer, short and specific.
 Open with substance, never with thanks or boilerplate.
