@@ -85,13 +85,25 @@ describe('disk', () => {
     const dir = await directory(count);
     assertThat('wish count was not mentioned', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`holds ${count} wishes right now`));
   });
-  it('asks the agent to do the whole wish itself when the directory holds a hundred wishes', async () => {
+  it('forbids new wishes when the directory holds a hundred wishes', async () => {
     const dir = await directory(100 + Math.floor(Math.random() * 20));
-    assertThat('splitting was not forbidden in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('never split this wish into new wishes, but do all of it yourself'));
+    assertThat('new wishes were not forbidden in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('write no new wish at all'));
   });
-  it('dont ask the agent to do the whole wish itself when the directory holds few wishes', async () => {
+  it('asks the agent to do one small piece of the wish when the directory holds a hundred wishes', async () => {
+    const dir = await directory(100 + Math.floor(Math.random() * 20));
+    assertThat('one small piece was not asked in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('do only one small piece of this wish yourself'));
+  });
+  it('dont ask the agent to do the whole wish itself when the directory holds a hundred wishes', async () => {
+    const dir = await directory(100 + Math.floor(Math.random() * 20));
+    assertThat('the whole wish was still demanded in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('do all of it yourself')));
+  });
+  it('dont mention handing over waiting when the directory holds a hundred wishes', async () => {
+    const dir = await directory(100 + Math.floor(Math.random() * 20));
+    assertThat('handing over waiting was still mentioned in a full directory', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('hand over waiting')));
+  });
+  it('dont limit the agent to one small piece when the directory holds few wishes', async () => {
     const dir = await directory(1 + Math.floor(Math.random() * 98));
-    assertThat('splitting was forbidden in a directory that is not full', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('never split this wish into new wishes, but do all of it yourself')));
+    assertThat('one small piece was demanded in a directory that is not full', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('do only one small piece of this wish')));
   });
   it('forbids the agent to delete the file of its own wish', async () => {
     const dir = await directory(1);

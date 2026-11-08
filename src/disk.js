@@ -29,7 +29,7 @@ export const disk = (wishes, logs, memory, crew) => Object.freeze({
       `Write at most ${crew.size()} new wishes while doing this wish;`,
       'if more work remains than they can hold, make one of them a continuation that splits the rest later.',
       `The directory ${wishes} holds ${count} wishes right now.`,
-      ...(count >= 100 ? ['Since that is 100 or more, never split this wish into new wishes, but do all of it yourself, and write no other new wish either, not even to hand over waiting.'] : []),
+      ...(count >= 100 ? ['Since that is 100 or more, write no new wish at all, but do only one small piece of this wish yourself, such as one repository or one item, and then finish, leaving the rest for the next time a permanent wish runs.'] : []),
       `In every Git repository you touch, do all your work inside a separate Git worktree, never in the main directory of the repository, so that other wishes running at the same time do not see your changes.`,
       `Never spend time waiting while doing a wish, neither sleeping nor polling for a build, a review, a merge, or anything else;`,
       `if something must happen first, leave that work alone and complete the current wish right away, since the permanent wish that led here comes back to it later;`,
