@@ -67,6 +67,18 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('copying was not limited to the words of the user', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('copy into it, word for word, only what the user wrote in a permanent wish and explicitly asked to pass along'));
   });
+  it('asks the agent to copy the condition of use together with what the user asked to pass along', async () => {
+    const dir = await directory(1);
+    assertThat('the condition of use was not copied together with the credentials', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('always together with the exact condition, word for word, under which the user allowed it to be used'));
+  });
+  it('lets the agent notify anyone only under the exact condition of the wish', async () => {
+    const dir = await directory(1);
+    assertThat('notifications were not limited to the condition of the wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Notify anyone only under the exact condition that a wish states'));
+  });
+  it('forbids the agent to notify anyone about a routine result', async () => {
+    const dir = await directory(1);
+    assertThat('a routine result was still a reason to notify', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('a routine result is never a reason to notify, such as a merge, a triage, nothing to do, or work waiting for CI or for a person'));
+  });
   it('does not let the agent copy whatever facts a new wish cannot find', async () => {
     const dir = await directory(1);
     assertThat('copying of any missing facts was still allowed', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('copy only the facts that the new wish cannot find on its own')));
