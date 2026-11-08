@@ -42,3 +42,4 @@ Say in one sentence why the item needs attention now.
 Ask to triage an issue, or to fix it when it carries the `bug` label.
 Ask to review a pull request, or to merge it
   when an approving review stands on its head commit.
+Ask to merge a pull request from `renovate[bot]`, never to review it.
