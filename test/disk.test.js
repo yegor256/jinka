@@ -79,9 +79,21 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('git worktrees were not demanded', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('do all your work inside a separate Git worktree'));
   });
-  it('asks the agent to hand any waiting over to a new wish', async () => {
+  it('forbids the agent to wait while doing a wish', async () => {
     const dir = await directory(1);
-    assertThat('waiting was not handed over to a new wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never spend time waiting while doing a wish'));
+    assertThat('waiting was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never spend time waiting while doing a wish'));
+  });
+  it('asks the agent to leave alone the work that must wait', async () => {
+    const dir = await directory(1);
+    assertThat('waiting work was not left alone', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('if something must happen first, leave that work alone and complete the current wish right away'));
+  });
+  it('does not ask the agent to write a new wish that waits', async () => {
+    const dir = await directory(1);
+    assertThat('a waiting wish was still demanded', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('write a new wish that waits')));
+  });
+  it('does not ask the agent to write a new wish instead of scheduling', async () => {
+    const dir = await directory(1);
+    assertThat('a new wish was still demanded instead of scheduling', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('but write a new wish instead')));
   });
   it('forbids the agent to schedule work for later', async () => {
     const dir = await directory(1);
