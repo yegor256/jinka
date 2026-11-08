@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { assertThat, containsString, hasSize, not, promiseThat, rejected } from 'hamjest';
+import { assertThat, containsString, equalTo, hasProperty, hasSize, not, promiseThat, rejected } from 'hamjest';
 import { skills } from '../src/skills.js';
 
 const library = async (entries) => {
@@ -56,6 +56,25 @@ describe('skills', () => {
   it('fails when a skill has no description', async () => {
     const dir = await library([[`n-${randomUUID()}`, `---\nname: n${randomUUID()}\n---\n`]]);
     await promiseThat('skill without description was not rejected', skills(dir).lines(), rejected());
+  });
+  it('lists skills in the order of their directory names', async () => {
+    const names = [...Array(9).keys()].map(() => randomUUID());
+    const dir = await library([]);
+    for (const n of [...names].sort().reverse()) {
+      await mkdir(join(dir, n));
+      await writeFile(join(dir, n, 'SKILL.md'), `---\nname: ${n}\ndescription: |\n  Sorts ${randomUUID()}.\n---\n`);
+    }
+    assertThat('skills were not sorted by directory name', (await skills(dir).lines()).map((l) => l.split('"')[1]), equalTo([...names].sort()));
+  });
+  it('fails when a skill does not start with front matter', async () => {
+    const name = `m-${randomUUID()}`;
+    const dir = await library([[name, `# ${randomUUID()}\nname: m\ndescription: Misses ${randomUUID()}\n---\n`]]);
+    await promiseThat('skill without opening of front matter was not rejected', skills(dir).lines(), rejected(hasProperty('message', containsString(join(dir, name, 'SKILL.md')))));
+  });
+  it('fails when the front matter of a skill is not closed', async () => {
+    const name = `u-${randomUUID()}`;
+    const dir = await library([[name, `---\nname: u\ndescription: |\n  Unclosed ${randomUUID()}.\n\n# ${randomUUID()}\n`]]);
+    await promiseThat('skill with unclosed front matter was not rejected', skills(dir).lines(), rejected(hasProperty('message', containsString(join(dir, name, 'SKILL.md')))));
   });
   it('fails when the directory of skills is absent', async () => {
     await promiseThat('absent directory was not rejected', skills(join(tmpdir(), randomUUID())).lines(), rejected());

@@ -5,7 +5,13 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const field = (path, text, key) => {
-  const head = text.split(/\r?\n/).slice(1);
+  const [first, ...head] = text.split(/\r?\n/);
+  if (first !== '---') {
+    throw new Error(`The skill file ${path} does not start with the "---" line of its front matter`);
+  }
+  if (!head.includes('---')) {
+    throw new Error(`The skill file ${path} has no closing "---" line of its front matter`);
+  }
   const matter = head.slice(0, head.indexOf('---'));
   const start = matter.findIndex((l) => l.startsWith(`${key}:`));
   if (start < 0) {
@@ -21,6 +27,7 @@ export const skills = (dir) => Object.freeze({
   lines: async () => Promise.all(
     (await readdir(dir, { withFileTypes: true }))
       .filter((e) => e.isDirectory())
+      .sort((a, b) => (a.name < b.name ? -1 : 1))
       .map(async (e) => {
         const path = join(dir, e.name, 'SKILL.md');
         const text = await readFile(path, 'utf8');
