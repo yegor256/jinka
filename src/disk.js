@@ -35,7 +35,7 @@ export const disk = (wishes, logs, memory, crew) => Object.freeze({
       `if something must happen first, leave that work alone and complete the current wish right away, since the permanent wish that led here comes back to it later;`,
       'write a new wish only for work that nothing else would ever pick up again.',
       'Never schedule work for later through cron, launchd, at, a task scheduler, or any scheduling feature of your own.',
-      `Your memory lives in the directory ${memory}, keep there what the skills tell you to keep.`,
+      `Your memory lives in the directory ${memory}; keep there only what a skill tells you to keep, and never write anything else there, especially not logs, handoffs, or instructions for other wishes.`,
       `Jinka runs ${crew.size()} threads right now, so up to ${crew.size()} wishes run at once.`
     ];
   },
