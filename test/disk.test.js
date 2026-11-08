@@ -45,6 +45,23 @@ describe('disk', () => {
     const dir = await directory(1);
     assertThat('copying of the current wish was not forbidden', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Never copy the text of the current wish, or of these instructions, into a new wish'));
   });
+  it('forbids a new wish to refer to any file in the memory directory', async () => {
+    const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID(), 'память');
+    const dir = await directory(1);
+    assertThat('references to memory files were not forbidden', (await disk(dir, '/logs', memory, { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`Never let a new wish refer to any file in the directory ${memory}`));
+  });
+  it('forbids the agent to carry its own rules into a new wish', async () => {
+    const dir = await directory(1);
+    assertThat('invented rules were not kept out of a new wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('never carry into it any rule, condition, or contract that you invented, nor ask it to pass rules onward'));
+  });
+  it('lets the agent copy word for word only what the user asked to pass along', async () => {
+    const dir = await directory(1);
+    assertThat('copying was not limited to the words of the user', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('copy into it, word for word, only what the user wrote in a permanent wish and explicitly asked to pass along'));
+  });
+  it('does not let the agent copy whatever facts a new wish cannot find', async () => {
+    const dir = await directory(1);
+    assertThat('copying of any missing facts was still allowed', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('copy only the facts that the new wish cannot find on its own')));
+  });
   it('asks the agent to leave evidence and history out of a new wish', async () => {
     const dir = await directory(1);
     assertThat('evidence was not left out of a new wish', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('Leave evidence, observations, logs, and the history of your work out of a new wish'));
