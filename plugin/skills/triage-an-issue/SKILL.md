@@ -40,7 +40,6 @@ Ask the author one precise question when the issue is unclear,
 Search open and closed issues for the same symptom.
 Close the issue as a duplicate only when both share symptom and cause,
   and link the original in the closing comment.
-Link a related but different issue in a comment instead of closing.
 Close a bug that the default branch no longer has,
   and cite the commit or pull request that fixed it.
 Close an issue whose author left an earlier question unanswered
