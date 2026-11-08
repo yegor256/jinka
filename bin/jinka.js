@@ -39,7 +39,10 @@ import { summary } from '../src/summary.js';
 import { summarized } from '../src/summarized.js';
 import { semaphore } from '../src/semaphore.js';
 import { hello } from '../src/hello.js';
+import { teed } from '../src/teed.js';
+import { appended } from '../src/appended.js';
 
+const start = new Date();
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 const positive = (text) => {
@@ -91,6 +94,7 @@ const program = new Command()
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
+  .addOption(new Option('--protocol <file>', 'file where the entire protocol of the run is saved').default(join(homedir(), '.jinka', 'protocols', `${[start.getFullYear(), start.getMonth() + 1, start.getDate(), start.getHours(), start.getMinutes()].map((n) => String(n).padStart(2, '0')).join('-')}.txt`), '~/.jinka/protocols/YYYY-MM-DD-HH-MM.txt, the time of start'))
   .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start').default(join(homedir(), '.jinka', 'pid.txt'), '~/.jinka/pid.txt'))
   .option('--no-color', 'paint nothing in the terminal, which a non-empty NO_COLOR environment variable also does')
   .option('--no-tui', 'print only the protocol, without the status bars and the list of threads')
@@ -115,18 +119,20 @@ const d = disk(dir, resolve(values.logs), resolve(values.memory), c);
 const j = jobs(genie(e, d, meters([t, engine === 'codex' ? rollouts(q, sessions) : q]), engine === 'codex' ? () => recorded(model(), sessions) : model));
 const f = freeze(c, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const r = release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
-const start = Date.now();
 const tui = process.stdout.isTTY && values.tui;
 const screen = summarized(
-  tui
-    ? tty(
-      values.color && !process.env.NO_COLOR ? process.stdout : colorless(process.stdout),
-      c,
-      status(start, pile(dir), j, a, values.model, t, q),
-      legend(f, r)
-    )
-    : log(process.stdout),
-  summary(start, pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir, tokens: t }),
+  teed(
+    tui
+      ? tty(
+        values.color && !process.env.NO_COLOR ? process.stdout : colorless(process.stdout),
+        c,
+        status(start.getTime(), pile(dir), j, a, values.model, t, q),
+        legend(f, r)
+      )
+      : log(process.stdout),
+    log(appended(resolve(values.protocol)))
+  ),
+  summary(start.getTime(), pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir, tokens: t }),
   process.stdout
 );
 process.on('exit', () => screen.close());
