@@ -202,6 +202,16 @@ describe('event', () => {
     const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_4', type: 'agent_message', text: JSON.stringify({ summary: text, link: '' }) } });
     assertThat('summary field of codex was not used', event(line, 7).summary(), equalTo(text));
   });
+  it('reports the final result by the summary field of its json', () => {
+    const text = `Audited the dependencies ${Math.random()} ж`;
+    const line = JSON.stringify({ type: 'result', subtype: 'success', result: JSON.stringify({ link: '', summary: text }) });
+    assertThat('final result was reported as raw json', event(line, 7).text(), equalTo(text));
+  });
+  it('reports a message of codex by the summary field of its json', () => {
+    const text = `Merged the pull request ${Math.random()} ü`;
+    const line = JSON.stringify({ type: 'item.completed', item: { id: 'item_5', type: 'agent_message', text: JSON.stringify({ link: '', summary: text }) } });
+    assertThat('codex message was reported as raw json', event(line, 7).text(), equalTo(text));
+  });
   it('summarizes a final result that is json without a summary by its text', () => {
     const text = `${Math.floor(Math.random() * 1000)}`;
     const line = JSON.stringify({ type: 'result', subtype: 'success', result: text });
