@@ -130,7 +130,7 @@ const screen = summarized(
         legend(f, r)
       )
       : log(process.stdout),
-    log(appended(resolve(values.protocol)))
+    log(colorless(appended(resolve(values.protocol))))
   ),
   summary(start.getTime(), pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir, tokens: t }),
   process.stdout

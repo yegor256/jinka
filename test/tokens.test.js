@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { randomUUID } from 'node:crypto';
+import { styleText } from 'node:util';
 import { assertThat, equalTo } from 'hamjest';
 import { tokens } from '../src/tokens.js';
 
@@ -39,8 +40,18 @@ describe('tokens', () => {
   });
   it('prints large numbers in a short form', () => {
     const t = tokens();
-    t.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { cache_read_input_tokens: 1_234_567 } } }));
-    assertThat('large number was not shortened', t.text(), equalTo('1.2M'));
+    t.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { cache_read_input_tokens: 234_567 } } }));
+    assertThat('large number was not shortened', t.text(), equalTo('234.6K'));
+  });
+  it('prints more than a million tokens in red', () => {
+    const t = tokens();
+    t.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { cache_read_input_tokens: 1_734_219 } } }));
+    assertThat('million tokens were not red', t.text(), equalTo(styleText('red', '1.7M', { validateStream: false })));
+  });
+  it('dont print exactly a million tokens in red', () => {
+    const t = tokens();
+    t.add(JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { output_tokens: 1_000_000 } } }));
+    assertThat('exactly a million tokens were red', t.text(), equalTo('1M'));
   });
   it('sums the tokens of a turn of codex', () => {
     const t = tokens();

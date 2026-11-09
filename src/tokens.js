@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Yegor Bugayenko
 // SPDX-License-Identifier: MIT
 
+import { styleText } from 'node:util';
+
 export const tokens = () => {
   const messages = new Map();
   return Object.freeze({
@@ -21,7 +23,10 @@ export const tokens = () => {
         return;
       }
     },
-    text: () => new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 })
-      .format([...messages.values()].reduce((sum, count) => sum + count, 0))
+    text: () => {
+      const sum = [...messages.values()].reduce((total, count) => total + count, 0);
+      const text = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(sum);
+      return sum > 1_000_000 ? styleText('red', text, { validateStream: false }) : text;
+    }
   });
 };
