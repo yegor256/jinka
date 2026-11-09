@@ -40,6 +40,8 @@ Write one Markdown file per item, named
 Name the repository and the number in the text.
 Say in one sentence why the item needs attention now.
 Ask to triage an issue, or to fix it when it carries the `bug` label.
-Ask to review a pull request, or to merge it
+Ask to repair a pull request opened by this account
+  when a check on its head commit failed or it has conflicts.
+Ask to review any other pull request, or to merge it
   when an approving review stands on its head commit.
 Ask to merge a pull request from `renovate[bot]`, never to review it.
