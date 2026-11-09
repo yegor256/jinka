@@ -65,10 +65,10 @@ export const event = (line, count) => {
       return (json.message?.content ?? []).map((p) => part(p)).filter((p) => p !== '').join(' ');
     }
     if (json.type === 'result') {
-      return first(String(json.result ?? json.subtype ?? ''));
+      return first(answer(String(json.result ?? json.subtype ?? '')).summary);
     }
     if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
-      return first(String(json.item.text ?? ''));
+      return first(answer(String(json.item.text ?? '')).summary);
     }
     if (json.type === 'item.started' && json.item?.type === 'command_execution') {
       return program(String(json.item.command ?? ''));
