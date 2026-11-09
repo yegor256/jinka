@@ -14,7 +14,7 @@ export const claude = (agent, model, effort, plugin) => {
     ...(effort === '' ? [] : ['--effort', effort])
   ];
   return Object.freeze({
-    start: (args, signal) => agent.start(full(args), signal),
+    start: (args, signal, dir) => agent.start(full(args), signal, dir),
     command: (args) => agent.command(full(args)),
     lines: () => []
   });

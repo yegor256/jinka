@@ -5,21 +5,22 @@ import { createInterface } from 'node:readline';
 import { event } from './event.js';
 import { tokens } from './tokens.js';
 
-export const genie = (engine, disk, meter, model) => Object.freeze({
-  run: async (wish, row, signal) => {
+export const genie = (engine, disk, temp, meter, model) => Object.freeze({
+  run: async (wish, row, signal) => temp.run(wish.name(), async (dir) => {
     const prompt = [
       'Make this wish come true, working on your own without asking any questions:',
       '',
       await wish.text(),
       '',
       ...(await disk.lines(wish)),
+      `Your current directory ${dir} belongs to this wish alone, so put every temporary file, clone, and worktree there and nowhere else, since Jinka deletes this directory once the wish ends.`,
       ...(await engine.lines()),
       'When you finish, answer with a JSON object of two fields:',
       '"summary" is a single plain sentence that says what you did,',
       'and "link" is the full URL of the GitHub issue or pull request you worked on, or an empty string if there was none.'
     ].join('\n');
     const log = await disk.log(wish);
-    const child = engine.start(disk.args(), signal);
+    const child = engine.start(disk.args(), signal, dir);
     child.stdin.on('error', () => {});
     child.stdin.end(prompt);
     child.stdout.pipe(log, { end: false });
@@ -52,5 +53,5 @@ export const genie = (engine, disk, meter, model) => Object.freeze({
       });
       child.on('close', (code) => log.end(() => resolve({ code: code ?? 1, summary, link, tokens: usage.text(), model: m.text() })));
     });
-  }
+  })
 });

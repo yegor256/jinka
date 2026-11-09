@@ -4,9 +4,9 @@
 import spawn from 'cross-spawn';
 
 export const agent = (command) => Object.freeze({
-  start: (args, signal) => {
+  start: (args, signal, dir) => {
     const windows = process.platform === 'win32';
-    const child = spawn(command, args, windows ? { stdio: 'pipe' } : { signal, stdio: 'pipe' });
+    const child = spawn(command, args, windows ? { cwd: dir, stdio: 'pipe' } : { cwd: dir, signal, stdio: 'pipe' });
     if (windows) {
       signal.addEventListener(
         'abort',
