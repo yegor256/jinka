@@ -14,6 +14,7 @@ import { claude } from '../src/claude.js';
 import { codex } from '../src/codex.js';
 import { genie } from '../src/genie.js';
 import { disk } from '../src/disk.js';
+import { temp } from '../src/temp.js';
 import { tty } from '../src/tty.js';
 import { colorless } from '../src/colorless.js';
 import { log } from '../src/log.js';
@@ -87,6 +88,7 @@ const program = new Command()
   .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs').default(join(homedir(), '.jinka', 'memory'), '~/.jinka/memory'))
   .addOption(new Option('--skill <dir>', 'directory with the plugin of skills that the agent loads').default(join(root, 'plugin'), 'skills bundled with jinka'))
   .option('--slack <sec>', 'how many seconds a thread rests after a wish before it takes the next wish', natural, 5)
+  .addOption(new Option('--temp <dir>', 'directory where every run of a wish gets its own temporary directory, deleted once the run ends').default(join(homedir(), '.jinka', 'temp'), '~/.jinka/temp'))
   .addOption(new Option('--engine <name>', 'kind of agent to run, guessed from the name of the agent executable when not given').choices(['claude', 'codex']))
   .addOption(new Option('--agent <cmd>', 'agent executable to run').default('', 'the name of the engine'))
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
@@ -116,7 +118,7 @@ const c = crew(values.threads, limit, { warn: (text) => screen.notice().warn(tex
 const sessions = join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'sessions');
 const e = (engine === 'codex' ? codex : claude)(agent(a), values.model, values.effort, resolve(values.skill));
 const d = disk(dir, resolve(values.logs), resolve(values.memory), c);
-const j = jobs(genie(e, d, meters([t, engine === 'codex' ? rollouts(q, sessions) : q]), engine === 'codex' ? () => recorded(model(), sessions) : model));
+const j = jobs(genie(e, d, temp(resolve(values.temp)), meters([t, engine === 'codex' ? rollouts(q, sessions) : q]), engine === 'codex' ? () => recorded(model(), sessions) : model));
 const f = freeze(c, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const r = release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const tui = process.stdout.isTTY && values.tui;

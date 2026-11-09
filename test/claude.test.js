@@ -58,6 +58,10 @@ describe('claude', () => {
     child.stdin.end();
     assertThat('json schema was not demanded', await text(child.stdout), matchesPattern(/--json-schema \{[^ ]*\\"summary\\"/));
   });
+  it('starts the agent inside the given directory', () => {
+    const dir = `/${randomUUID()}`;
+    assertThat('directory did not reach the agent', claude({ start: (args, signal, cwd) => cwd }, '', '', '/plugin').start([], AbortSignal.timeout(5000), dir), equalTo(dir));
+  });
   it('adds no lines to the prompt', () => {
     assertThat('lines were added to the prompt', claude(agent(randomUUID()), '', '', `/${randomUUID()}`).lines(), equalTo([]));
   });

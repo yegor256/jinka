@@ -6,7 +6,7 @@ import { event } from './event.js';
 
 export const hello = (engine, notice) => Object.freeze({
   run: (signal) => new Promise((resolve, reject) => {
-    const child = engine.start([], signal);
+    const child = engine.start([], signal, process.cwd());
     const answer = [''];
     child.stdin.on('error', () => {});
     child.stdin.end('Tell me, who you are, in a very short single sentence.');

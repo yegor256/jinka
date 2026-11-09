@@ -16,7 +16,7 @@ export const codex = (agent, model, effort, plugin) => {
     '-'
   ];
   return Object.freeze({
-    start: (args, signal) => agent.start(full(args), signal),
+    start: (args, signal, dir) => agent.start(full(args), signal, dir),
     command: (args) => agent.command(full(args)),
     lines: async () => [
       'These are your skills, each with its name, the path of its SKILL.md file, and its description:',

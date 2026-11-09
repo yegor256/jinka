@@ -60,6 +60,10 @@ describe('codex', () => {
     child.stdin.end();
     assertThat('effort was passed without being given', await text(child.stdout), not(containsString('model_reasoning_effort')));
   });
+  it('starts the agent inside the given directory', () => {
+    const dir = `/${randomUUID()}`;
+    assertThat('directory did not reach the agent', codex({ start: (args, signal, cwd) => cwd }, '', '', '/plugin').start([], AbortSignal.timeout(5000), dir), equalTo(dir));
+  });
   it('demands the final answer to match the json schema in a file', async () => {
     const child = codex(agent(await script(0).path()), '', '', `/${randomUUID()}`).start([], AbortSignal.timeout(5000));
     child.stdin.end();

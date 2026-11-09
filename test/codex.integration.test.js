@@ -11,6 +11,7 @@ import { model } from '../src/model.js';
 import { codex } from '../src/codex.js';
 import { agent } from '../src/agent.js';
 import { disk } from '../src/disk.js';
+import { temp } from '../src/temp.js';
 import { wish } from '../src/wish.js';
 import { row } from '../src/row.js';
 
@@ -26,7 +27,7 @@ describe('Codex with the real agent', function () {
     await writeFile(join(dir, 'a.md'), 'Reply with the single word "done", without using any tools.');
     assertThat(
       'the real agent did not finish cleanly',
-      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'a.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).code,
+      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), temp(await mkdtemp(join(tmpdir(), 'jinka-'))), { add: () => {} }, model).run(wish(dir, 'a.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).code,
       equalTo(0)
     );
   });
@@ -35,7 +36,7 @@ describe('Codex with the real agent', function () {
     await writeFile(join(dir, 'b.md'), 'Reply with the single word "done", without using any tools.');
     assertThat(
       'the real agent gave no summary',
-      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'b.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).summary,
+      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), temp(await mkdtemp(join(tmpdir(), 'jinka-'))), { add: () => {} }, model).run(wish(dir, 'b.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).summary,
       matchesPattern(/done/i)
     );
   });
@@ -44,7 +45,7 @@ describe('Codex with the real agent', function () {
     await writeFile(join(dir, 'c.md'), 'Reply with the single word "done", without using any tools.');
     assertThat(
       'the real agent spent no tokens',
-      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), { add: () => {} }, model).run(wish(dir, 'c.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).tokens,
+      (await genie(codex(agent('codex'), '', 'low', join(import.meta.dirname, '..', 'plugin')), disk(dir, await mkdtemp(join(tmpdir(), 'jinka-')), await mkdtemp(join(tmpdir(), 'jinka-')), { size: () => 1 }), temp(await mkdtemp(join(tmpdir(), 'jinka-'))), { add: () => {} }, model).run(wish(dir, 'c.md', new Map()), row([], 0), AbortSignal.timeout(240_000))).tokens,
       not(equalTo('0'))
     );
   });

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 import { text } from 'node:stream/consumers';
+import { mkdtemp, readdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertThat, containsString, equalTo, not } from 'hamjest';
 import { agent } from '../src/agent.js';
@@ -18,6 +21,13 @@ describe('agent', () => {
     const child = agent(await script(0).path()).start([], AbortSignal.timeout(5000));
     child.stdin.end();
     assertThat('agent added its own arguments', await text(child.stdout), not(containsString('--')));
+  });
+  it('runs the executable inside the given directory', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const name = `${randomUUID()}.txt`;
+    const child = agent(process.execPath).start(['-e', `require('fs').writeFileSync(${JSON.stringify(name)}, '')`], AbortSignal.timeout(5000), dir);
+    await new Promise((resolve) => child.on('close', resolve));
+    assertThat('agent did not run inside the given directory', await readdir(dir), equalTo([name]));
   });
   it('renders the command with the executable first', () => {
     const command = `/${randomUUID()}`;

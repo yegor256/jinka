@@ -8,7 +8,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout } from 'node:timers/promises';
 import { randomUUID } from 'node:crypto';
-import { assertThat, equalTo, containsString, matchesPattern, not } from 'hamjest';
+import { assertThat, empty, equalTo, containsString, matchesPattern, not } from 'hamjest';
 import { script } from './fixtures/script.js';
 
 describe('jinka command', () => {
@@ -17,7 +17,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -38,7 +38,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(0).path(), '--threads', '2', '--archive', archive, '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -97,7 +97,7 @@ describe('jinka command', () => {
     const skill = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0).path(), '--skill', skill, '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(0).path(), '--skill', skill, '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -120,7 +120,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0, 0, [], 'codex').path(), '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(0, 0, [], 'codex').path(), '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -143,7 +143,7 @@ describe('jinka command', () => {
     const archive = await mkdtemp(join(tmpdir(), 'jinka-'));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0).path(), '--engine', 'codex', '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(0).path(), '--engine', 'codex', '--archive', archive, '--logs', logs, '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -173,7 +173,7 @@ describe('jinka command', () => {
     const pid = join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt');
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(0).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', pid, '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
+      ['bin/jinka.js', '--agent', await script(0).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', pid, '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
       { stdio: ['pipe', 'ignore', 'ignore'] }
     );
     await setTimeout(500);
@@ -220,7 +220,7 @@ describe('jinka command', () => {
     assertThat(
       'help did not sort its options alphabetically',
       spawnSync(process.execPath, ['bin/jinka.js', '--help'], { encoding: 'utf8', timeout: 5000 }).stdout,
-      matchesPattern(/--agent[^]*--archive[^]*--effort[^]*--engine[^]*--interval[^]*--limit[^]*--logs[^]*--memory[^]*--model[^]*--no-color[^]*--no-tui[^]*--pause[^]*--pid[^]*--skill[^]*--slack[^]*--threads[^]*--throttle[^]*--wishes/)
+      matchesPattern(/--agent[^]*--archive[^]*--effort[^]*--engine[^]*--interval[^]*--limit[^]*--logs[^]*--memory[^]*--model[^]*--no-color[^]*--no-tui[^]*--pause[^]*--pid[^]*--skill[^]*--slack[^]*--temp[^]*--threads[^]*--throttle[^]*--wishes/)
     );
   });
   it('prints the version at the end of the help description', () => {
@@ -238,7 +238,7 @@ describe('jinka command', () => {
     reader.stdout.on('data', (c) => chunks.push(c));
     const jinka = spawn(
       process.execPath,
-      ['bin/jinka.js', '--agent', await script(1, 0, Array.from({ length: 2000 }, () => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: randomUUID().repeat(4) }] } }))).path(), '--threads', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      ['bin/jinka.js', '--agent', await script(1, 0, Array.from({ length: 2000 }, () => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: randomUUID().repeat(4) }] } }))).path(), '--threads', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
       { stdio: ['pipe', reader.stdin, 'ignore'] }
     );
     reader.stdin.destroy();
@@ -255,7 +255,7 @@ describe('jinka command', () => {
       'command line of the agent was not printed',
       spawnSync(
         process.execPath,
-        ['bin/jinka.js', '--agent', await script(0).path(), '--model', model, '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+        ['bin/jinka.js', '--agent', await script(0).path(), '--model', model, '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
         { encoding: 'utf8', timeout: 10000 }
       ).stdout,
       matchesPattern(new RegExp(`every agent starts as: .+ --model ${model}\\n`))
@@ -268,18 +268,29 @@ describe('jinka command', () => {
       'answer of the agent was not printed',
       spawnSync(
         process.execPath,
-        ['bin/jinka.js', '--agent', await script(0).path(), '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+        ['bin/jinka.js', '--agent', await script(0).path(), '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
         { encoding: 'utf8', timeout: 10000 }
       ).stdout,
       containsString('the agent says: Finished with code 0\n')
     );
+  });
+  it('leaves nothing in the temporary folder after a wish', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    const base = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    spawnSync(
+      process.execPath,
+      ['bin/jinka.js', '--agent', await script(0).path(), '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', base, '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+      { encoding: 'utf8', timeout: 10000 }
+    );
+    assertThat('temporary folder was not emptied', await readdir(base), empty());
   });
   it('exits with code 1 when the agent fails at startup', async () => {
     assertThat(
       'jinka did not stop on a broken agent',
       spawnSync(
         process.execPath,
-        ['bin/jinka.js', '--agent', await script(1).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
+        ['bin/jinka.js', '--agent', await script(1).path(), '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', await mkdtemp(join(tmpdir(), 'jinka-'))],
         { encoding: 'utf8', timeout: 10000 }
       ).status,
       equalTo(1)
