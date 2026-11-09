@@ -7,7 +7,8 @@ description: |
     "clean up the backlog", "go through open issues",
     or names repositories whose backlog needs care.
   Picks the items idle for the longest, skips those that have a wish,
-    wait for their author, were visited within the last day,
+    wait for their author unless they are red or conflicting
+    pull requests of this account, were visited within the last day,
     or carry a review that requests changes,
     and writes one new wish per item.
 ---
@@ -25,7 +26,9 @@ Leave triage, review, merge, and fixes to the wishes you write.
 List every open issue and open pull request of each repository.
 Skip a draft pull request.
 Skip a pull request whose latest review requests changes.
-Skip an item whose last comment or review came from this account.
+Skip an item whose last comment or review came from this account,
+  unless it is a pull request opened by this account
+  whose head commit has a failed check or that has conflicts.
 Skip an item that an existing wish already covers,
   anywhere in the wishes directory or its sub-directories.
 Skip an item visited less than one day ago
