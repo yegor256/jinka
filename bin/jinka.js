@@ -129,20 +129,21 @@ const j = jobs(genie(e, d, temp(resolve(values.temp)), meters([t, engine === 'co
 const f = freeze(c, { warn: (text) => screen.notice().warn(text) }, () => quit(0));
 const r = release(pkg.version, 'https://registry.npmjs.org/@yegor256/jinka/latest');
 const tui = process.stdout.isTTY && values.tui;
+const stdout = values.color && !process.env.NO_COLOR ? process.stdout : colorless(process.stdout);
 const screen = summarized(
   teed(
     tui
       ? tty(
-        values.color && !process.env.NO_COLOR ? process.stdout : colorless(process.stdout),
+        stdout,
         c,
         status(start.getTime(), pile(dir), j, a, values.model, t, q),
         legend(f, r)
       )
-      : log(process.stdout),
+      : log(stdout),
     log(colorless(appended(resolve(values.protocol))))
   ),
   summary(start.getTime(), pkg.version, j, { agent: a, model: values.model, effort: values.effort, wishes: dir, tokens: t }),
-  process.stdout
+  stdout
 );
 process.on('exit', () => screen.close());
 if (tui) {

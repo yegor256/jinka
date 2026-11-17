@@ -294,6 +294,19 @@ describe('jinka command', () => {
       containsString('the agent says: Finished with code 0\n')
     );
   });
+  it('paints nothing with the no-color option when tokens exceed one million', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
+    await writeFile(join(dir, 'a.md'), randomUUID());
+    assertThat(
+      'colors were printed despite the no-color option',
+      spawnSync(
+        process.execPath,
+        ['bin/jinka.js', '--agent', await script(0, 0, [JSON.stringify({ type: 'assistant', message: { id: randomUUID(), usage: { input_tokens: 1_500_000 }, content: [] } })]).path(), '--no-color', '--limit', '1', '--archive', await mkdtemp(join(tmpdir(), 'jinka-')), '--logs', await mkdtemp(join(tmpdir(), 'jinka-')), '--memory', await mkdtemp(join(tmpdir(), 'jinka-')), '--temp', await mkdtemp(join(tmpdir(), 'jinka-')), '--interval', '50', '--pid', join(await mkdtemp(join(tmpdir(), 'jinka-')), 'pid.txt'), '--wishes', dir],
+        { encoding: 'utf8', timeout: 10000 }
+      ).stdout,
+      not(containsString('\x1b['))
+    );
+  });
   it('leaves nothing in the temporary folder after a wish', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'jinka-'));
     const base = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID());
