@@ -81,14 +81,15 @@ const program = new Command()
   .version(pkg.version)
   .configureHelp({ sortOptions: true })
   .showHelpAfterError('(add --help for additional information)')
-  .addOption(new Option('--wishes <dir>', 'directory with wishes, one per Markdown file').default(join(homedir(), '.jinka', 'wishes'), '~/.jinka/wishes'))
+  .addOption(new Option('--home <dir>', 'directory where all other directories and files of jinka live, unless given explicitly').default(join(homedir(), '.jinka'), '~/.jinka'))
+  .addOption(new Option('--wishes <dir>', 'directory with wishes, one per Markdown file (default: wishes inside the home)'))
   .option('--threads <n>', `how many wishes run at once, up to ${limit}, which the + and - keys change while running`, bounded, 6)
-  .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted').default(join(homedir(), '.jinka', 'archive'), '~/.jinka/archive'))
-  .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved').default(join(homedir(), '.jinka', 'logs'), '~/.jinka/logs'))
-  .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs').default(join(homedir(), '.jinka', 'memory'), '~/.jinka/memory'))
+  .addOption(new Option('--archive <dir>', 'directory where finished wishes are moved instead of being deleted (default: archive inside the home)'))
+  .addOption(new Option('--logs <dir>', 'directory where the output of every agent run is saved (default: logs inside the home)'))
+  .addOption(new Option('--memory <dir>', 'directory where agents keep what they learn about repositories between runs (default: memory inside the home)'))
   .addOption(new Option('--skill <dir>', 'directory with the plugin of skills that the agent loads').default(join(root, 'plugin'), 'skills bundled with jinka'))
   .option('--slack <sec>', 'how many seconds a thread rests after a wish before it takes the next wish', natural, 5)
-  .addOption(new Option('--temp <dir>', 'directory where every run of a wish gets its own temporary directory, deleted once the run ends').default(join(homedir(), '.jinka', 'temp'), '~/.jinka/temp'))
+  .addOption(new Option('--temp <dir>', 'directory where every run of a wish gets its own temporary directory, deleted once the run ends (default: temp inside the home)'))
   .addOption(new Option('--engine <name>', 'kind of agent to run, guessed from the name of the agent executable when not given').choices(['claude', 'codex']))
   .addOption(new Option('--agent <cmd>', 'agent executable to run').default('', 'the name of the engine'))
   .option('--interval <ms>', 'how often the wishes directory is scanned', positive, 5000)
@@ -96,13 +97,19 @@ const program = new Command()
   .addOption(new Option('--model <name>', 'model passed to the agent').default('', 'agent default'))
   .addOption(new Option('--effort <level>', 'reasoning effort passed to the agent, such as low, medium, high, xhigh, or max').default('', 'agent default'))
   .option('--throttle <percent>', 'how much of the agent quota, in percent, must be left in every window before a new job starts', percent, 15)
-  .addOption(new Option('--protocol <file>', 'file where the entire protocol of the run is saved').default(join(homedir(), '.jinka', 'protocols', `${[start.getFullYear(), start.getMonth() + 1, start.getDate(), start.getHours(), start.getMinutes()].map((n) => String(n).padStart(2, '0')).join('-')}.txt`), '~/.jinka/protocols/YYYY-MM-DD-HH-MM.txt, the time of start'))
-  .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start').default(join(homedir(), '.jinka', 'pid.txt'), '~/.jinka/pid.txt'))
+  .addOption(new Option('--protocol <file>', 'file where the entire protocol of the run is saved (default: protocols/YYYY-MM-DD-HH-MM.txt inside the home, the time of start)'))
+  .addOption(new Option('--pid <file>', 'file that exists while jinka runs, so that a second jinka refuses to start (default: pid.txt inside the home)'))
   .option('--no-color', 'paint nothing in the terminal, which a non-empty NO_COLOR environment variable also does')
   .option('--no-tui', 'print only the protocol, without the status bars and the list of threads')
   .addOption(new Option('--limit <n>', 'how many jobs start before jinka waits for them to finish and quits').argParser(positive).default(Infinity, 'unlimited'))
   .parse();
 const values = program.opts();
+const home = resolve(values.home);
+for (const name of ['wishes', 'archive', 'logs', 'memory', 'temp']) {
+  values[name] ??= join(home, name);
+}
+values.protocol ??= join(home, 'protocols', `${[start.getFullYear(), start.getMonth() + 1, start.getDate(), start.getHours(), start.getMinutes()].map((n) => String(n).padStart(2, '0')).join('-')}.txt`);
+values.pid ??= join(home, 'pid.txt');
 const s = semaphore(resolve(values.pid));
 await s.acquire().catch((e) => {
   console.error(e.message);
