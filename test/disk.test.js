@@ -161,6 +161,15 @@ describe('disk', () => {
     const dir = await directory(3);
     assertThat('file names were not suggested for the search', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('names of the wish files first'));
   });
+  it('forbids the agent to split a wish that names specific issues or pull requests', async () => {
+    const dir = await directory(1);
+    assertThat('wish with named items was not called atomic', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString('names specific issues or pull requests of one repository is an atomic job, so never split it'));
+  });
+  it('asks the agent to read the memory before writing a wish about an issue', async () => {
+    const memory = join(await mkdtemp(join(tmpdir(), 'jinka-')), randomUUID(), 'память');
+    const dir = await directory(1);
+    assertThat('memory was not consulted before a new wish', (await disk(dir, '/logs', memory, { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), containsString(`read what the skills keep in the directory ${memory} about that repository, and write no wish for an item that a skill would skip`));
+  });
   it('dont ask the agent to look through the existing wishes up front', async () => {
     const dir = await directory(1);
     assertThat('agent was asked to look through all wishes', (await disk(dir, '/logs', '/memory', { size: () => 1 }).lines(wish(dir, `${randomUUID()}.md`, new Map()))).join('\n'), not(containsString('look through the existing wishes')));

@@ -4,11 +4,13 @@ description: |
   Turns the neglected issues and pull requests of GitHub repositories
     into new wishes.
   Use when a wish says "keep my repositories in good shape",
+    "maintain repositories well", "triage all issues",
     "clean up the backlog", "go through open issues",
     or names repositories whose backlog needs care.
   Picks the items idle for the longest, skips those that have a wish,
     wait for their author unless they are red or conflicting
     pull requests of this account, were visited within the last day,
+    are labeled issues quiet since their last visit,
     or carry a review that requests changes,
     and writes one new wish per item.
 ---
@@ -34,6 +36,8 @@ Skip an item that an existing wish already covers,
 Skip an item visited less than one day ago
   according to `<owner>/<repo>/triaged.csv`
   in the memory directory named in the prompt.
+Skip an issue that carries a label and got no comment
+  and no edit since its last visit in that file.
 Sort the remaining items by last update, oldest first,
   and take as many from the top as the prompt lets you write.
 Write no wish when every item was skipped.
