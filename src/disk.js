@@ -17,6 +17,8 @@ export const disk = (wishes, logs, memory, crew) => Object.freeze({
       `All wishes live in the directory ${wishes}, and you may add new wishes there as Markdown files.`,
       `Never write a new wish if a similar wish already exists anywhere in the directory ${wishes};`,
       'check this only right before you write a new wish, looking at the names of the wish files first, and skip the check entirely when you write no new wish.',
+      'A wish that names specific issues or pull requests of one repository is an atomic job, so never split it, however many items it names.',
+      `Before you write a new wish about an issue or a pull request, read what the skills keep in the directory ${memory} about that repository, and write no wish for an item that a skill would skip.`,
       `If this wish is an atomic job that involves no other jobs, make it come true yourself;`,
       `otherwise, do not do it yourself, but split it into smaller wishes`,
       `and write each of them as a separate Markdown file in the directory ${join(wishes, dirname(wish.name()))}.`,
